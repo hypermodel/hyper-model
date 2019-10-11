@@ -22,10 +22,10 @@ copyright = '2019, Growing Data Pty Ltd'
 author = 'Growing Data Pty Ltd'
 
 # The short X.Y version
-version = '0.1.75'
+version = '0.1.77'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.75'
+release = '0.1.77'
 master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
