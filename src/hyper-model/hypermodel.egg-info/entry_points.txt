@@ -1,0 +1,3 @@
+[console_scripts]
+hml = hypermodel.cli.cli_start:main
+

@@ -1,0 +1,125 @@
+image: growingdata/hypermodel-cicd:gitlab-0.1.75
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://localhost:2375
+  CLUSTER_ZONE: australia-southeast1-a
+  GIT_SUBMODULE_STRATEGY: normal # do not recursively set up submodules.  We have istio-cni as a submodule.
+  GIT_DEPTH: "3"
+
+stages:
+  - build
+  - test
+  - deploy
+  - release
+  - infra
+
+before_script:
+  - export GCR_PROJECT="hyper-model-ops"
+  - export GCP_CLUSTER="$GCP_DEV_CLUSTER"
+
+  # This is our GCR (private) image repo for the current HM container
+  - export IMAGE_GCR_HYPERMODEL="gcr.io/hyper-model-ops/hypermodel/$CI_COMMIT_REF_SLUG"
+
+  # These are our release / public containers
+  - export IMAGE_DOCKERHUB_HYPERMODEL_BASE="growingdata/hypermodel-base"
+  - export IMAGE_DOCKERHUB_HYPERMODEL_CICD="growingdata/hypermodel-cicd"
+  - export IMAGE_DOCKERHUB_HYPERMODEL="growingdata/hypermodel"
+
+  # Setup permissions for Docker to do all the things that need doing
+  - echo "$GCR_CONTAINER_WRITER_KEY" > ./gcr-container-writer.json
+
+  - gcloud config set project $GCR_PROJECT
+  - gcloud auth activate-service-account --key-file ./gcr-container-writer.json
+  - gcloud auth configure-docker
+
+  # Login to DockerHub
+  - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+
+  - VERSION=$(cat ./version.txt)
+
+#######################################
+####  BUILD
+#######################################
+build-docs:
+  # Generate documentation using sphinx (which is also a pseudo build step)
+  stage: build
+  script:
+    - echo "Building.documentation.."
+    # Make sure that we install our package first
+    - pip install -e ./src/hyper-model
+    # Make the documentation
+    - cd src/hyper-model/doc
+    - make html
+
+#######################################
+####  DEPLOY
+#######################################
+build-image-hyper-model:
+  stage: deploy
+  dependencies:
+    - build-docs
+  script:
+    - echo "Building..."
+    - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_SHA -f ./infra/docker/hypermodel.Dockerfile ./src/
+    # - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA
+
+###############################################################
+###  OPEN_SOURCE
+###############################################################
+push-dockerhub-app:
+  stage: release
+  dependencies:
+    - build-app-image
+  when: manual
+  only:
+    - release/*
+  script:
+    - docker pull $IMAGE_HM_APP
+    - docker tag $IMAGE_HM_APP $IMAGE_HM_APP_DOCKERHUB
+    - docker tag $IMAGE_HM_APP_DOCKERHUB $IMAGE_HM_APP_DOCKERHUB:$VERSION
+
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+
+    - docker push $IMAGE_HM_APP_DOCKERHUB
+    - docker push $IMAGE_HM_APP_DOCKERHUB:$VERSION
+
+push-pip:
+  stage: release
+  dependencies:
+    - build-app-image
+  when: manual
+  only:
+    - release/*
+  script:
+    # Update HyperModel since we make lots of changes to it
+    - cd ./src/hyper-model
+    - pip install -e .
+    - cd ../
+    - python publish_pip.py
+
+#######################################
+####  INFRA
+#######################################
+image-hypermodel-base:
+  stage: infra
+  when: manual
+  # only:
+  #   - release/*
+  script:
+    - echo "Building..."
+    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base.Dockerfile ./infra/docker
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION
+
+image-hypermodel-cicd-gitlab:
+  stage: infra
+  when: manual
+  # only:
+  #   - release/*
+  script:
+    - echo "Building..."
+    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION -f ./infra/docker/hypermodel-cicd-gitlab.Dockerfile ./infra/docker
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION

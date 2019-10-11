@@ -1,0 +1,7 @@
+click
+kfp
+xgboost
+pandas
+google-cloud
+google-cloud-bigquery
+hypermodel
