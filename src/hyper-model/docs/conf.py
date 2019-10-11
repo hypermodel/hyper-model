@@ -10,9 +10,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, '/mnt/c/src/github/hyper-model/src/hyper-model/hypermodel')
+import os
+import sys
+sys.path.insert(0, '../')
 
 
 # -- Project information -----------------------------------------------------
@@ -26,7 +26,7 @@ version = '0.1.75'
 
 # The full version, including alpha/beta/rc tags
 release = '0.1.75'
-
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 

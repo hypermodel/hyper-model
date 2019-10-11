@@ -27,4 +27,4 @@ packages
 *.joblib
 artifacts/**
 artifacts/**
-**/doc/_build/**
+**/docs/_build/**

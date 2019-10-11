@@ -22,7 +22,7 @@ before_script:
   - export GCP_CLUSTER="$GCP_DEV_CLUSTER"
 
   # This is our GCR (private) image repo for the current HM container
-  - export IMAGE_GCR_HYPERMODEL="gcr.io/hyper-model-ops/hypermodel/$CI_COMMIT_REF_SLUG"
+  - export IMAGE_GCR_HYPERMODEL="gcr.io/hyper-model-ops/hypermodel"
 
   # These are our release / public containers
   - export IMAGE_DOCKERHUB_HYPERMODEL_BASE="growingdata/hypermodel-base"
@@ -35,9 +35,6 @@ before_script:
   - gcloud config set project $GCR_PROJECT
   - gcloud auth activate-service-account --key-file ./gcr-container-writer.json
   - gcloud auth configure-docker
-
-  # Login to DockerHub
-  - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
 
   - VERSION=$(cat ./version.txt)
 
@@ -52,7 +49,7 @@ build-docs:
     # Make sure that we install our package first
     - pip install -e ./src/hyper-model
     # Make the documentation
-    - cd src/hyper-model/doc
+    - cd src/hyper-model/docs
     - make html
 
 #######################################
@@ -64,58 +61,57 @@ build-image-hyper-model:
     - build-docs
   script:
     - echo "Building..."
-    - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_SHA -f ./infra/docker/hypermodel.Dockerfile ./src/
-    # - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA
+    - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG -f ./infra/docker/hypermodel.Dockerfile ./src/hyper-model
+    - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
 
 ###############################################################
-###  OPEN_SOURCE
+###  RELEASE
 ###############################################################
 push-dockerhub-app:
   stage: release
   dependencies:
-    - build-app-image
+    - build-image-hyper-model
   when: manual
-  only:
-    - release/*
+  # only:
+  #   - release/*
   script:
-    - docker pull $IMAGE_HM_APP
-    - docker tag $IMAGE_HM_APP $IMAGE_HM_APP_DOCKERHUB
-    - docker tag $IMAGE_HM_APP_DOCKERHUB $IMAGE_HM_APP_DOCKERHUB:$VERSION
-
+    # Login to dockerhub
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
-
-    - docker push $IMAGE_HM_APP_DOCKERHUB
-    - docker push $IMAGE_HM_APP_DOCKERHUB:$VERSION
+    # Pull the image I built during  `build-image-hyper-model` and re-tag it
+    - docker pull $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
+    - docker tag $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG $IMAGE_DOCKERHUB_HYPERMODEL
+    - docker tag $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
+    # Push my images, both as a version and as the latest
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
 
 push-pip:
   stage: release
   dependencies:
-    - build-app-image
+    - build-image-hyper-model
   when: manual
-  only:
-    - release/*
+  # only:
+  #   - release/*
   script:
     # Update HyperModel since we make lots of changes to it
-    - cd ./src/hyper-model
-    - pip install -e .
-    - cd ../
+    - pip install -e ./src/hyper-model
     - python publish_pip.py
 
 #######################################
 ####  INFRA
 #######################################
 image-hypermodel-base:
-  stage: infra
+  stage: release
   when: manual
-  # only:
-  #   - release/*
+  only:
+    - release/*
   script:
     - echo "Building..."
     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base.Dockerfile ./infra/docker
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION
 
 image-hypermodel-cicd-gitlab:
-  stage: infra
+  stage: release
   when: manual
   # only:
   #   - release/*

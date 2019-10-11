@@ -1,0 +1,10 @@
+click
+kfp
+pandas
+joblib
+google-cloud
+google-cloud-bigquery
+tqdm
+python-gitlab
+flask
+waitress

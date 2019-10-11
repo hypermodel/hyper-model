@@ -17,7 +17,7 @@ RUN pip install \
 ADD . /hypermodel
 
 
-WORKDIR /hypermodel/src/hyper-model
+WORKDIR /hypermodel/
 RUN pip install -e .
 
 

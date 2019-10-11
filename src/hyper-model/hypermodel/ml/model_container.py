@@ -5,7 +5,6 @@ import os
 import joblib
 import gitlab
 
-from xgboost import XGBClassifier
 from typing import List, Dict
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
@@ -164,7 +163,6 @@ class ModelContainer:
 
         # # All done, we have a merge request!
         # return reference
-
 
     def bind_model(self, model):
         self.model = model
