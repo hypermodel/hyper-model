@@ -59,8 +59,35 @@ TARGET_COLUMN = "alcohol_related"
 services = GooglePlatformServices()
 
 
-# Helper function for configuring the pipeline operation
+@dsl.pipeline(PIPELINE_NAME, PIPELINE_DESCRIPTION)
+def crash_training_pipeline():
+    """
+    This is the entrypoint into the Training Pipeline. The 
+    "@dsl.pipeline" decorator tells the Kubeflow that this 
+    method defines a series of pipeline Operations modelled as a Pipeline.  
+    """
+
+    # Build a training set in Big Query
+    create_training_set = build_op("create_training_set", "crashed", ["transform", "create-training"])
+
+    # Build a test set in Big Query
+    create_test_set = build_op("create_test_set", "crashed", ["transform", "create-test"])
+
+    # Model training using xgboost
+    train_model = (
+        build_op("train_model", "crashed", ["training", "train-model"])
+        .after(create_training_set)
+        .after(create_test_set)
+    )
+
+
 def build_op(name, command, args):
+    """
+    Build a Kubeflow Op customised to run within GCP using the provided
+    name, command and arguments.  This method assumes that a docker container
+    tagged with the current commit has been built in CI/CD prior to this 
+    executing.
+    """
     ci_commit_hash = os.environ["CI_COMMIT_SHA"]
     container_url = f"{DOCKER_CONTAINER}:{ci_commit_hash}"
 
@@ -73,26 +100,6 @@ def build_op(name, command, args):
     )
 
     return op
-
-
-# The actual pipeline, ready for deployment
-@dsl.pipeline(PIPELINE_NAME, PIPELINE_DESCRIPTION)
-def crash_training_pipeline():
-
-    # Training & Test set creation in Big Query
-    create_training_set = build_op(
-        "create_training_set", "crashed", ["transform", "create-training"]
-    )
-    create_test_set = build_op(
-        "create_test_set", "crashed", ["transform", "create-test"]
-    )
-
-    # Model training using xgboost
-    train_model = (
-        build_op("train_model", "crashed", ["training", "train-model"])
-        .after(create_training_set)
-        .after(create_test_set)
-    )
 
 
 if __name__ == "__main__":
