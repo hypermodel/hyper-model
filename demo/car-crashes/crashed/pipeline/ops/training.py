@@ -12,8 +12,6 @@ from hypermodel.ml.features.categorical import (
     get_unique_feature_values,
     one_hot_encode,
 )
-from hypermodel.utilities.gitlab import create_model_merge_request
-
 from crashed.model_config import crashed_model_container, build_feature_matrix
 from crashed.model_config import BQ_TABLE_TRAINING, BQ_TABLE_TEST
 
@@ -58,8 +56,10 @@ def train_model(ctx):
     evaluate_model(model_container, test_df)
 
     # Publish this version of the model & data analysis
-    model_container.publish()
+    ref = model_container.publish()
 
+    # Create a merge request for this model to be deployed
+    model_container.create_merge_request(ref, description="My new model")
     return
 
 
