@@ -24,6 +24,38 @@ python setup.py sdist bdist_wheel
 pip install -e .
 ```
 
+# Example Pipeline
+
+```
+config = {
+  "lake_path": "./lake",
+  "warehouse_path": "./warehouse/sqlite-warehouse.db"
+}
+
+app = ModelApp(name="crashed_model", platform="local", config-config)
+
+@app.pipeline()
+def my_pipeline(name):
+
+  a = step_a(name)
+  b = step_b(name)
+
+  # Execute b after a
+  b.after(a)
+
+@app.pipeline.op():
+def step_a(firstname):
+  print(f"hello {firstname}")
+
+
+@app.pipeline.op():
+def step_b(firstname):
+  print(f"goodbye {firstname}")
+
+
+```
+
+
 # Anatomy of an ML Project in Hyper Model
 
 Hyper Model Projects provide are self-contained Python Packages, providing all the code required for both Training and Prediction phase. Hyper Model Projects are executable locally as console scripts.
