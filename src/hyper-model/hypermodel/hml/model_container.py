@@ -9,11 +9,11 @@ from typing import List, Dict
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
 from hypermodel.utilities.file_hash import file_md5
-from hypermodel.ml.features.categorical import (
+from hypermodel.hml.features.categorical import (
     get_unique_feature_values,
     one_hot_encode,
 )
-from hypermodel.ml.features.numerical import describe_features
+from hypermodel.hml.features.numerical import describe_features
 
 
 class ModelContainer:

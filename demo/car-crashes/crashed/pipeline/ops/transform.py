@@ -1,7 +1,7 @@
 import click
 import logging
 from hypermodel.platform.gcp.services import GooglePlatformServices
-from hypermodel.ml.model_container import ModelContainer
+from hypermodel.hml.model_container import ModelContainer
 
 from crashed.pipeline.crash_training_pipeline import (
     FEATURE_COLUMNS,

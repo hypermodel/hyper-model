@@ -1,13 +1,13 @@
-hypermodel.ml.prediction package
+hypermodel.hml.prediction package
 ================================
 
 Submodules
 ----------
 
-hypermodel.ml.prediction.prediction\_app module
+hypermodel.hml.prediction.prediction\_app module
 -----------------------------------------------
 
-.. automodule:: hypermodel.ml.prediction.prediction_app
+.. automodule:: hypermodel.hml.prediction.prediction_app
    :members:
    :undoc-members:
    :show-inheritance:
@@ -16,7 +16,7 @@ hypermodel.ml.prediction.prediction\_app module
 Module contents
 ---------------
 
-.. automodule:: hypermodel.ml.prediction
+.. automodule:: hypermodel.hml.prediction
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,4 +1,4 @@
-hypermodel.ml package
+hypermodel.hml package
 =====================
 
 Subpackages
@@ -6,16 +6,16 @@ Subpackages
 
 .. toctree::
 
-   hypermodel.ml.features
-   hypermodel.ml.prediction
+   hypermodel.hml.features
+   hypermodel.hml.prediction
 
 Submodules
 ----------
 
-hypermodel.ml.model\_container module
+hypermodel.hml.model\_container module
 -------------------------------------
 
-.. automodule:: hypermodel.ml.model_container
+.. automodule:: hypermodel.hml.model_container
    :members:
    :undoc-members:
    :show-inheritance:
@@ -24,7 +24,7 @@ hypermodel.ml.model\_container module
 Module contents
 ---------------
 
-.. automodule:: hypermodel.ml
+.. automodule:: hypermodel.hml
    :members:
    :undoc-members:
    :show-inheritance:

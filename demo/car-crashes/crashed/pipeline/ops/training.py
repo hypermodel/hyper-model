@@ -7,8 +7,8 @@ from typing import List, Dict
 
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
-from hypermodel.ml.model_container import ModelContainer
-from hypermodel.ml.features.categorical import (
+from hypermodel.hml.model_container import ModelContainer
+from hypermodel.hml.features.categorical import (
     get_unique_feature_values,
     one_hot_encode,
 )

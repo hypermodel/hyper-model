@@ -4,7 +4,7 @@ import json
 from flask import Flask, send_file
 from waitress import serve
 
-from hypermodel.ml.prediction.routes.health import bind_health_routes
+from hypermodel.hml.prediction.routes.health import bind_health_routes
 
 
 class PredictionApp:
@@ -35,7 +35,7 @@ class PredictionApp:
 
         Args:
             model_container (ModelContainer): The container wrapping the model
-        
+
         Returns:
             The model container passed in, having been loaded.
 
@@ -58,7 +58,7 @@ class PredictionApp:
 
         if name in self.models:
             return self.models[name]
-        
+
         return None
 
     def start_dev(self):

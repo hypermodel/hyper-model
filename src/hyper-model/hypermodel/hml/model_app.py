@@ -4,8 +4,8 @@ import click
 from kfp import dsl
 from typing import List, Dict, Callable
 import kfp.dsl as dsl
-from hypermodel.ml.package_op import PackageOp
-from hypermodel.ml.model_op import ModelOpWrapper
+from hypermodel.hml.package_op import PackageOp
+# from hypermodel.hml import ModelOpWrapper
 
 
 class ModelApp:
@@ -34,7 +34,7 @@ class ModelApp:
 
         return pipe
 
-    def create_op(self, op_wrapper: ModelOpWrapper, pipeline_func):
+    def create_op(self, op_wrapper, pipeline_func):
         """
         Convert a function to a `package_op` so that it can be consumed by Kubeflow Pipelines
         while also exposing it as a cli command

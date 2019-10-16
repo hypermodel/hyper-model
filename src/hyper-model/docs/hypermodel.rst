@@ -8,7 +8,7 @@ Subpackages
 
    hypermodel.cli
    hypermodel.kubeflow
-   hypermodel.ml
+   hypermodel.hml
    hypermodel.model
    hypermodel.platform
    hypermodel.utilities

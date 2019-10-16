@@ -1,6 +1,5 @@
-from hypermodel.ml.model_app import ModelApp
-from hypermodel.ml.model_op import model_op, model_op_param
-from hypermodel.ml.model_pipeline import model_pipeline, model_pipeline_param
+from hypermodel.hml.model_app import ModelApp
+from hypermodel import hml
 
 import click
 
@@ -30,20 +29,20 @@ def build_container(op):
     )
 
 
-@model_op()
-@model_op_param('-f', '--firstname', required=True, help='The users first name')
+@hml.op()
+@hml.option('-f', '--firstname', required=True, help='The users first name')
 def step_a(firstname):
     print(f"hello {firstname}")
 
 
-@model_op()
-@model_op_param('-f', '--firstname', required=True, help='The users first name')
+@hml.op()
+@hml.option('-f', '--firstname', required=True, help='The users first name')
 def step_b(firstname):
     print(f"goodbye {firstname}")
 
 
-@model_pipeline(app=app)
-@model_pipeline_param('-f', '--firstname', required=True, help='The users first name')
+@hml.pipeline(app=app)
+@hml.option('-f', '--firstname', required=True, help='The users first name')
 def my_pipeline(firstname):
     # Get my reference to myself
     print(f"Executing my pipeline (dsl style)")

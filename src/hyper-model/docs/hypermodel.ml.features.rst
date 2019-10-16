@@ -1,21 +1,21 @@
-hypermodel.ml.features package
+hypermodel.hml.features package
 ==============================
 
 Submodules
 ----------
 
-hypermodel.ml.features.categorical module
+hypermodel.hml.features.categorical module
 -----------------------------------------
 
-.. automodule:: hypermodel.ml.features.categorical
+.. automodule:: hypermodel.hml.features.categorical
    :members:
    :undoc-members:
    :show-inheritance:
 
-hypermodel.ml.features.numerical module
+hypermodel.hml.features.numerical module
 ---------------------------------------
 
-.. automodule:: hypermodel.ml.features.numerical
+.. automodule:: hypermodel.hml.features.numerical
    :members:
    :undoc-members:
    :show-inheritance:
@@ -24,7 +24,7 @@ hypermodel.ml.features.numerical module
 Module contents
 ---------------
 
-.. automodule:: hypermodel.ml.features
+.. automodule:: hypermodel.hml.features
    :members:
    :undoc-members:
    :show-inheritance:

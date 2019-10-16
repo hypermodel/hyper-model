@@ -7,8 +7,8 @@ import pandas as pd
 from flask import jsonify, request
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
-from hypermodel.ml.prediction.prediction_app import PredictionApp
-from hypermodel.ml.model_container import ModelContainer
+from hypermodel.hml.prediction.prediction_app import PredictionApp
+from hypermodel.hml.model_container import ModelContainer
 
 from crashed.model_config import crashed_model_container, services, build_feature_matrix
 

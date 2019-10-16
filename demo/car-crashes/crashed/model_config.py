@@ -3,8 +3,8 @@ import logging
 from typing import List, Dict
 import pandas as pd
 
-from hypermodel.ml.model_container import ModelContainer
-from hypermodel.ml.features.categorical import one_hot_encode
+from hypermodel.hml.model_container import ModelContainer
+from hypermodel.hml.features.categorical import one_hot_encode
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
 
