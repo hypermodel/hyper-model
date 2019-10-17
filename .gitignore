@@ -14,7 +14,7 @@ packages
 *.sqlite
 *.csv
 *.zip
-.vscode/**
+**/.vscode/**
 **/.cache/**
 **/.mypy_cache/**
 **/node_modules/**

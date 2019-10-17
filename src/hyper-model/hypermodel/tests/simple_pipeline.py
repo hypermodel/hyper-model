@@ -1,8 +1,6 @@
-from hypermodel.hml.model_app import ModelApp
+from hypermodel.hml import PipelineApp
 from hypermodel import hml
-
 import click
-
 
 config = {
     "package_name": "simple_pipeline",
@@ -12,7 +10,7 @@ config = {
     "warehouse_path": "./warehouse/sqlite-warehouse.db"
 }
 
-app = ModelApp(name="model_app", platform="local", config=config)
+app = PipelineApp(name="model_app", platform="local", config=config)
 
 
 def build_container(op):
@@ -48,8 +46,12 @@ def my_pipeline(firstname):
     print(f"Executing my pipeline (dsl style)")
     pipe = app.pipelines["my_pipeline"]
 
-    a = pipe["step_a"]
-    b = pipe["step_b"]
+    a = step_a(firstname)
+    b = step_b("caity")
+
+    print(a)
+    # a = pipe["step_a"]
+    # b = pipe["step_b"]
 
     # Execute b after a
     b.after(a)
@@ -58,9 +60,11 @@ def my_pipeline(firstname):
 # Register our Op / Container builder
 app.op_builder(build_container)
 
-print(f"my_pipeline: {my_pipeline}")
-my_pipeline.add_op(step_a)
-my_pipeline.add_op(step_b)
+# print(f"my_pipeline: {my_pipeline}")
+# my_pipeline.add_op(step_a)
+# my_pipeline.add_op(step_b)
+
+my_pipeline.get_workflow()
 
 # Kick off the CLI processor
-app.start()
+# app.start()

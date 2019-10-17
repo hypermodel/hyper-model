@@ -7,25 +7,23 @@ from hypermodel.platform.gcp.config import GooglePlatformConfig
 import logging
 
 
-class PackageOp(object):
+class HmlContainerOp(object):
     """
-    ``PackageOp`` defines the base functionality for a Kubeflow Pipeline Operation
+    ``HmlContainerOp`` defines the base functionality for a Kubeflow Pipeline Operation
     which is executed as a simple command line application (assuming that the package)
     has been installed, and has a script based entrypoint
     """
 
-    def __init__(self,
-                 pipeline_name: str,
-                 op_name: str,
-                 ):
+    def __init__(self, func):
         """
         Create a new ``GcpBaseOp``
 
         Args:
-            config (GooglePlatformConfig): The configuration collected to use
-            pipeline_name (str): The name of the parent pipeline this belongs to
-            op_name (str): The name of the current operation.
+            func (Callable): The function to execute
         """
+        self.func = func
+        self.op_name = func.__name__
+
         self.data: Dict[str, str] = dict()
         self.secrets: Dict[str, str] = dict()
         self.output_artifact_paths: Dict[str, str] = dict()

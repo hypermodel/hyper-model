@@ -1,15 +1,9 @@
 import logging
 import click
 import kfp.dsl as dsl
-from hypermodel.hml.model_app import ModelApp
+from hypermodel.hml import PipelineApp
 
 from typing import List, Dict
-
-
-class ModelOpWrapper:
-    def __init__(self, func):
-        self.func = func
-        self.name = func.__name__
 
 
 def op():
@@ -24,9 +18,9 @@ def op():
     def _register(func):
         print(f"model_op._register()")
 
-        wrapper = ModelOpWrapper(func)
+        # wrapper = ModelOpWrapper(func)
 
-        return wrapper
+        return func
 
     return _register
 
@@ -36,13 +30,12 @@ def option(*args, **kwargs):
 
     def _register(func):
         print(f"@model_op_param _register: {func}")
-        # print(f"model_op._register()")
         return click.option(*args, **kwargs)(func)
 
     return _register
 
 
-def pipeline(app: ModelApp):
+def pipeline(app:  PipelineApp):
     def _register(func):
         print(f"model_pipeline._register: {app.name} for {func.__name__}")
 

@@ -32,7 +32,7 @@ config = {
   "warehouse_path": "./warehouse/sqlite-warehouse.db"
 }
 
-app = ModelApp(name="crashed_model", platform="local", config-config)
+app = PipelineApp(name="crashed_model", platform="local", config-config)
 
 @app.pipeline()
 def my_pipeline(name):
@@ -54,7 +54,6 @@ def step_b(firstname):
 
 
 ```
-
 
 # Anatomy of an ML Project in Hyper Model
 
