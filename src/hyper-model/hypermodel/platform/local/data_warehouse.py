@@ -35,14 +35,15 @@ class SqliteDataWarehouse(ABC):
     def select_into(self, query: str, output_dataset: str, output_table: str) -> bool:
         logging.info(f"SqliteDataWarehouse.select_into Entered!")
 
-        connection =  sqlite3.connect(dbLocation)
+        connection =  sqlite3.connect(output_dataset)
         cur = conn.cursor()
 
-        cur.execute(query)
+        selectintoQuery="select # into "+output_table+" from "+query
+        cur.execute(selectintoQuery)
 
         logging.info(f"SqliteDataWarehouse.select_into  Exiting")
         connection.close()
-        return true
+        return True
 
     def dataframe_from_table(self, dbLocation: str, tableName: str) -> pd.DataFrame:
         logging.info(f"SqliteDataWarehouse.dataframe_from_table")
@@ -63,7 +64,7 @@ class SqliteDataWarehouse(ABC):
         connection.close()
         return retDataFrame
 
-    def get_table_columns(self,dbLocation: str, query: str): 
+    def get_table_columns(self,dbLocation: str, query: str)->List[SqlColumn]: 
         dbLocation=self.config.default_sql_lite_db_file
         connection =  sqlite3.connect(dbLocation)
         # confining the query to return minimum rows 
