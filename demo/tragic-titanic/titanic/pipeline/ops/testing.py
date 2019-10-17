@@ -7,7 +7,6 @@ import logging
 import gitlab
 import joblib
 
-from xgboost import XGBClassifier
 from sklearn.preprocessing import OneHotEncoder
 
 from typing import List, Dict

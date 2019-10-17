@@ -36,9 +36,19 @@ class SqliteDataWarehouse(ABC):
         logging.info(f"SqliteDataWarehouse.select_into Entered!")
 
         connection =  sqlite3.connect(output_dataset)
-        cur = conn.cursor()
+        cur = connection.cursor()
 
-        selectintoQuery="select # into "+output_table+" from "+query
+        #selectintoQuery="select * into "+output_table+" from ("+query+") tt"
+        
+        # drop table if it exists
+        try:
+            cur.execute(f"drop table {output_table}")
+        except :
+            logging.info(f"Table {output_table} could not be dropped. It may not exist or there may be an issue with the DB connection.")
+
+
+        selectintoQuery=f"CREATE TABLE {output_table} AS {query}"
+
         cur.execute(selectintoQuery)
 
         logging.info(f"SqliteDataWarehouse.select_into  Exiting")
@@ -149,7 +159,22 @@ def unit_test():
     #add test code here
     #test_import_csv()
     #test_dataframe_from_table()
-    test_dry_run()
+    #test_dry_run()
+    test_dummy()
+    
+
+
+def test_dummy():
+    dbNameLoc="titanic_db.dat"
+    tableName="titanic_train_table"
+    conn = sqlite3.connect(dbNameLoc)
+
+    cur = conn.cursor()
+
+    for row in cur.execute('PRAGMA table_info( '+tableName+")"):
+        print(row)
+
+    conn.close()
 
 def test_import_csv():
     config = LocalConfig()

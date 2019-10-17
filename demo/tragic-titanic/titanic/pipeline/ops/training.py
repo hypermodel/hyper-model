@@ -3,6 +3,16 @@ import os
 import pandas as pd
 import logging
 from xgboost import XGBClassifier
+
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.neural_network import MLPClassifier
+
 from typing import List, Dict
 
 from hypermodel.platform.local.services import LocalServices
@@ -73,8 +83,24 @@ def train(model_container, data_frame):
     feature_matrix = build_feature_matrix(model_container, data_frame)
     targets = data_frame[model_container.target]
 
-    classifier = XGBClassifier()
-    model = classifier.fit(feature_matrix, targets, verbose=True)
+    # classifier = XGBClassifier()
+    # model = classifier.fit(feature_matrix, targets, verbose=True)
+    # classifier = KNeighborsClassifier()
+    # model = classifier.fit(feature_matrix, targets)
+    # classifier = SVC()
+    # model = classifier.fit(feature_matrix, targets)
+    # classifier = DecisionTreeClassifier()
+    # model = classifier.fit(feature_matrix, targets)
+    # classifier = RandomForestClassifier()
+    # model = classifier.fit(feature_matrix, targets)
+    # classifier = AdaBoostClassifier()
+    # model = classifier.fit(feature_matrix, targets)
+    # classifier = GaussianNB()
+    # model = classifier.fit(feature_matrix, targets)
+    # classifier = MLPClassifier()
+    # model = classifier.fit(feature_matrix, targets)
+    classifier = QuadraticDiscriminantAnalysis()
+    model = classifier.fit(feature_matrix, targets)
     
     return model
 
