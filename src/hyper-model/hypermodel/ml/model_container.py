@@ -164,15 +164,30 @@ class ModelContainer:
         # # All done, we have a merge request!
         # return reference
 
+
+# The following was commented by Amit on 2019-10-14 as there was an error thrown
+# looking at the similarity in parameter naming in the class GitHostBase's method create_merge_request
+# renaming the parameters and methods accordingly below
+    # def create_merge_request(self, reference, description="New models!"):
+    #     self.services.git.create_model_merge_request(
+    #         config=self.services.config,
+    #         model_reference=reference,
+    #         model_reference_path=self.filename_reference,
+    #         description="New models!",
+    #         target_branch="master",
+    #         labels=["model-bot"],
+    #     )
+
+
     def create_merge_request(self, reference, description="New models!"):
-        self.services.git.create_model_merge_request(
-            config=self.services.config,
-            model_reference=reference,
-            model_reference_path=self.filename_reference,
+        self.services.git.create_merge_request(
+            reference=reference,
+            reference_path=self.filename_reference,
             description="New models!",
             target_branch="master",
             labels=["model-bot"],
         )
+
 
     def bind_model(self, model):
         self.model = model

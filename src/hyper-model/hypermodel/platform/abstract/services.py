@@ -7,7 +7,7 @@ from hypermodel.platform.abstract.data_lake import DataLakeBase
 from hypermodel.platform.abstract.git_host import GitHostBase
 
 
-class PlatformServicesBase(ABC):
+class PlatformServicesBase(ABC): # extends Abstract Base class
 
     @abstractproperty
     def lake(self) -> DataLakeBase:
@@ -20,3 +20,7 @@ class PlatformServicesBase(ABC):
     @abstractproperty
     def git(self) -> GitHostBase:
         pass
+
+
+
+    

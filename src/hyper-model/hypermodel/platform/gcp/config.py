@@ -25,6 +25,7 @@ class GooglePlatformConfig():
         self.gcp_project = self.get_env("GCP_PROJECT")
         self.gcp_zone = self.get_env("GCP_ZONE")
 
+        print("LAKE_BUCKET is "+self.get_env("LAKE_BUCKET"))
         self.lake_bucket = self.get_env("LAKE_BUCKET")
         self.lake_path = self.get_env("LAKE_PATH")
 
@@ -34,7 +35,7 @@ class GooglePlatformConfig():
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')
         self.k8s_cluster = self.get_env('K8S_CLUSTER')
 
-        self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', '/artifacts')
+        self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', '.')
 
         self.ci_commit = self.get_env("CI_COMMIT_SHA", "no-commit")
 

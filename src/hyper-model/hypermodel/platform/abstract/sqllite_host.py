@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 
-class GitHostBase(ABC):# extends Abstract Base class
+class SQLLiteBase(ABC):# extends Abstract Base class
 
     @abstractmethod
     def create_merge_request(self,

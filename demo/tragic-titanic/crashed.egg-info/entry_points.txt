@@ -1,0 +1,3 @@
+[console_scripts]
+crashed = crashed.__main__:main
+
