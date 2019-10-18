@@ -28,12 +28,6 @@ class SqliteDataWarehouse(ABC):
         # in case want to append to existing table make if_exists="append" 
         # in case want to overrite the existing table make if_exists="replace"
 
- 
-        logging.info(f"Parameter csvLocation is {csvLocation}")
-        logging.info(f"Parameter dbLocation is {dbLocation}")
-        logging.info(f"Parameter tableName is {tableName}")
-
-
 
         
         dataFrame.to_sql(tableName,connection,if_exists="replace")
