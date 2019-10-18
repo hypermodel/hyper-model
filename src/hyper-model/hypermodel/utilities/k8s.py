@@ -6,6 +6,7 @@ from hypermodel import sh
 import os
 import base64
 import yaml
+import re
 
 
 def secret_from_env(env_var: str, namespace: str) -> bool:
@@ -59,6 +60,13 @@ def secret_to_file(secret_name: str, namespace: str, path: str) -> bool:
 
     print(f"Downloaded secret {secret_name} in namespace {namespace} to ${output_file}")
     return True
+
+
+def sanitize_k8s_name(name: str):
+    """From _make_kubernetes_name
+        sanitize_k8s_name cleans and converts the names in the workflow.
+    """
+    return re.sub('-+', '-', re.sub('[^-0-9a-z]+', '-', name.lower())).lstrip('-').rstrip('-')
 
 
 def connect(cluster_name: str, zone: str, project: str):

@@ -1,4 +1,3 @@
-from hypermodel.hml import PipelineApp
 from hypermodel import hml
 import click
 
@@ -7,24 +6,17 @@ config = {
     "script_name": "simple_pipeline",
     "container_url": "growingdata/simple_pipeline",
     "lake_path": "./lake",
-    "warehouse_path": "./warehouse/sqlite-warehouse.db"
+    "warehouse_path": "./warehouse/sqlite-warehouse.db",
+    "port": 9000
 }
 
-app = PipelineApp(name="model_app", platform="local", config=config)
+def op_configurator(op):
+    op.with_secret("tester", "/secret/tester")
+    op.with_env("param_a", "value_1")
+    return op
 
-
-def build_container(op):
-    """
-      Configure how we are going to run this code as a container
-      Much of this is taken care of for you, but you will still
-      need to manage secrets and other aspects.
-    """
-    (
-        op
-        .with_container(config["container_url"])
-        # .bind_gcp_config(services.config)
-        # .bind_gcp_auth(GCP_AUTH_SECRET)
-    )
+app = hml.HmlApp(name="model_app", platform="local", config=config)
+app.pipelines.configure_op(op_configurator)
 
 
 @hml.op()
@@ -40,31 +32,16 @@ def step_b(firstname):
 
 
 @hml.pipeline(app=app)
-@hml.option('-f', '--firstname', required=True, help='The users first name')
-def my_pipeline(firstname):
-    # Get my reference to myself
+# @hml.option('-f', '--firstname', required=True, help='The users first name')
+def my_pipeline():
     print(f"Executing my pipeline (dsl style)")
-    pipe = app.pipelines["my_pipeline"]
 
-    a = step_a(firstname)
-    b = step_b("caity")
+    a = step_a(firstname="tez")
+    b = step_b(firstname="caity")
 
-    print(a)
-    # a = pipe["step_a"]
-    # b = pipe["step_b"]
+    # b.after(a)
+    a.after(b)
 
-    # Execute b after a
-    b.after(a)
-
-
-# Register our Op / Container builder
-app.op_builder(build_container)
-
-# print(f"my_pipeline: {my_pipeline}")
-# my_pipeline.add_op(step_a)
-# my_pipeline.add_op(step_b)
-
-my_pipeline.get_workflow()
 
 # Kick off the CLI processor
-# app.start()
+app.start()

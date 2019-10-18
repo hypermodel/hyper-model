@@ -1,11 +1,11 @@
 import click
 
 
-from hypermodel.hml.pipeline_app import PipelineApp
-from hypermodel.hml.prediction_app import PredictionApp
+from hypermodel.hml.hml_app import HmlApp
+from hypermodel.hml.hml_pipeline_app import HmlPipelineApp
+from hypermodel.hml.hml_inference_app import HmlInferenceApp
 
 from hypermodel.hml.hml_container_op import HmlContainerOp
-from hypermodel.hml.hml_op import HmlOp
 from hypermodel.hml.hml_pipeline import HmlPipeline
 
 from hypermodel.hml.model_container import ModelContainer

@@ -1,5 +1,6 @@
 import logging
 import json
+import click
 
 from flask import Flask, send_file
 from waitress import serve
@@ -7,13 +8,13 @@ from waitress import serve
 from hypermodel.hml.prediction.routes.health import bind_health_routes
 
 
-class PredictionApp:
+class HmlInferenceApp:
     """
     The host of the Flask app used for predictions for models
     """
     models: dict
 
-    def __init__(self, port=8000):
+    def __init__(self, name, services, cli, config):
         """
         Create a new `PredictionApp`, listening on the provided port
 
@@ -22,10 +23,22 @@ class PredictionApp:
         """
         self.models = dict()
         self.flask = Flask(__name__)
-        self.port = port
+        self.port = 8000
+        if "port" in config:
+            self.port = int(config["port"])
 
         # Bind my health related endpoints
         bind_health_routes(self.flask)
+
+        # Bidn my cli commands for inference
+        self.cli_root = cli
+        self.cli_root.add_command(self.cli_inference_group)
+
+        self.cli_start_dev = click.command()(self.start_dev)
+        self.cli_inference_group.add_command(self.cli_start_dev)
+
+        self.cli_start_prod = click.command()(self.start_prod)
+        self.cli_inference_group.add_command(self.cli_start_prod)
 
     def load_model(self, model_container):
         """
@@ -60,6 +73,11 @@ class PredictionApp:
             return self.models[name]
 
         return None
+
+    @click.group(name="inference")
+    @click.pass_context
+    def cli_inference_group(context):
+        pass
 
     def start_dev(self):
         """

@@ -142,3 +142,17 @@ demo my-pipeline features encode
 ```
 
 ```
+
+# Development setup
+
+```
+conda create --name hml-dev python=3.7
+activate hml-dev
+cd src\hyper-model\
+pip install -e ,
+
+pip install mypy
+
+```
+
+Set Visual Studio Code to use the newly created `hml-dev` environment

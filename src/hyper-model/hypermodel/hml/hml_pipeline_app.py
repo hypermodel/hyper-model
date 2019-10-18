@@ -9,26 +9,28 @@ from hypermodel.hml.hml_pipeline import HmlPipeline
 from hypermodel.hml.hml_container_op import HmlContainerOp
 
 
-@click.group()
-@click.pass_context
-def cli(ctx):
-    return
 
-
-class PipelineApp:
+class HmlPipelineApp:
     name: str
-    platform: str
     config: Dict[str, str]
     op_builders: List[Callable[[HmlContainerOp], HmlContainerOp]] = []
 
-    def __init__(self, name, platform, config):
+    def __init__(self, name, services, cli, config):
         self.name = name
-        self.platform = platform
+        self.services = services
         self.config = config
-        self.services = None
+        self.cli_root = cli
+        self.cli_root.add_command(self.cli_pipeline_group)
+        
 
         self.pipelines: Dict[str, HmlPipeline] = dict()
         self.op_builders = []
+
+
+    @click.group(name="pipelines")
+    @click.pass_context
+    def cli_pipeline_group(context):
+        pass
 
     def __getitem__(self, key: str) -> HmlPipeline:
         """
@@ -41,20 +43,15 @@ class PipelineApp:
         """
         Register a Kubeflow Pipeline (e.g. a function decorated with @model_pipeline)
         """
-        pipe = HmlPipeline(self.config, cli, pipeline_func, self.op_builders)
+        pipe = HmlPipeline(self.config, self.cli_pipeline_group, pipeline_func, self.op_builders)
 
         self.pipelines[pipe.name] = pipe
 
         return pipe
 
-    def op_builder(self, func: Callable[[HmlContainerOp], HmlContainerOp]):
+    def configure_op(self, func: Callable[[HmlContainerOp], HmlContainerOp]):
         self.op_builders.append(func)
         return self
 
     def start(self):
-        context = {
-            "services": self.services,
-            "app": self
-        }
-
         cli(obj=context, auto_envvar_prefix="HML")
