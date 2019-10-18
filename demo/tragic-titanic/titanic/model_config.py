@@ -8,7 +8,7 @@ from hypermodel.ml.features.categorical import one_hot_encode
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
 from hypermodel.platform.local.services import LocalServices
-
+from titanic.tragic_titanic_config import NUMERICAL_FEATURES, CATEGORICAL_FEATURES
 
 BQ_TABLE_TRAINING = "crashes_training"
 BQ_TABLE_TEST = "crashes_test"
@@ -27,17 +27,16 @@ def titanic_model_container():
     """
     logging.info(f"Entering model_config:titanic_model_container")
 
-    numeric_features: List[str] = [
-        "Age",
-        "Siblings-Spouses Aboard",
-        "Parents-Children Aboard",
-        "Fare",
-    ]
+    titanic_numerical_features: List[str] = NUMERICAL_FEATURES
 
-    categorical_features: List[str] = [
-        "Pclass",
-    ]
-    all_features: List[str] = numeric_features + categorical_features
+    titanic_categorical_features: List[str] = CATEGORICAL_FEATURES
+
+
+
+
+
+
+    all_features: List[str] = titanic_numerical_features + titanic_categorical_features
 
     target_column: str = "Survived"
 
@@ -46,8 +45,8 @@ def titanic_model_container():
     model_container = ModelContainer(
         name=model_name,
         project_name="demo-titanic",
-        features_numeric=numeric_features,
-        features_categorical=categorical_features,
+        features_numeric=titanic_numerical_features,
+        features_categorical=titanic_categorical_features,
         target=target_column,
         services=services,
     )
@@ -63,8 +62,6 @@ def build_feature_matrix(
         dataframe, and "throw_on_missing" == True, then we will throw an exception
         as the mapping back to the original matrix wont make sense.
     """
-    logging.info(f"Entering model_config:build_feature_matrix")
-    logging.info(f"build_feature_matrix: {model_container.name}")
 
     # Now lets do the encoding thing...
     encoded_df = one_hot_encode(

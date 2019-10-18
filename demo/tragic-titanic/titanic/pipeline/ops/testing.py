@@ -8,6 +8,7 @@ import gitlab
 import joblib
 
 from sklearn.preprocessing import OneHotEncoder
+from titanic.model_config import titanic_model_container, build_feature_matrix
 
 from typing import List, Dict
 
@@ -19,6 +20,11 @@ from hypermodel.ml.features.categorical import (
     one_hot_encode,
 )
 from hypermodel.ml.model_container import ModelContainer
+from titanic.tragic_titanic_config import (
+    DB_LOCATION,
+    DB_TABLE,
+    DB_TRAINING_TABLE,
+    DB_TESTING_TABLE)
 
 
 # from crashed.model_config import crashed_model_container, build_feature_matrix
@@ -39,9 +45,9 @@ def test_model(ctx):
     services: LocalServices = ctx.obj["services"]
     model_container: ModelContainer = ctx.obj["container"]
 
-    test_df = pd.read_csv("C:\\Amit\\hypermodel\\hyper-model\\demo\\tragic-titanic\\data\\titanic_test.csv")
-    # test_df =services.warehouse.dataframe_from_table(
-    #     services.config.warehouse_dataset, BQ_TABLE_TEST)
+    #test_df = pd.read_csv("C:\\Amit\\hypermodel\\hyper-model\\demo\\tragic-titanic\\data\\titanic_test.csv")
+    test_df =services.warehouse.dataframe_from_table(
+         DB_LOCATION, DB_TESTING_TABLE)
 
     logging.info("Got Test DataFrame!")
 
@@ -49,7 +55,7 @@ def test_model(ctx):
     model_container.load()
 
     # # Run some evaluation against the model
-    # evaluate_model(model_container, test_df)
+    evaluate_model(model_container, test_df)
     logging.info(f"Entering testing:test_model")
     return
 
@@ -62,6 +68,7 @@ def evaluate_model(model_container, data_frame):
     test_targets = data_frame[model_container.target]
 
     # # Evaluate the model against the training data to get an idea of where we are at
+
     test_predictions = [v for v in model_container.model.predict(test_feature_matrix)]
     correct = 0
     for i in range(0, len(test_predictions)):

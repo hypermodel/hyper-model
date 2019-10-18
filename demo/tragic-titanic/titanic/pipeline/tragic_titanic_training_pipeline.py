@@ -7,6 +7,7 @@ from hypermodel.platform.local.services import LocalServices
 from hypermodel.platform.gcp.services import GooglePlatformServices
 from hypermodel.platform.gcp.gcp_base_op import GcpBaseOp
 from hypermodel.kubeflow.deploy_dev import deploy_to_dev
+from titanic.tragic_titanic_config import NUMERICAL_FEATURES, CATEGORICAL_FEATURES
 
 # Lets include some constants
 PIPELINE_NAME = "tragic_titanic_training_pipeline"
@@ -24,16 +25,6 @@ PIPELINE_DESCRIPTION = "Training titanic survivor data"
 
 # # settings for the pipeline
 
-NUMERICAL_FEATURES = [
-    "Fare",
-]
-
-CATEGORICAL_FEATURES = [
-    "Pclass",
-    "Sex",
-    "'Siblings-Spouses Aboard'",
-    "'Parents-Children Aboard'",
-]
 FEATURE_COLUMNS = NUMERICAL_FEATURES + CATEGORICAL_FEATURES
 
 TARGET_COLUMN = "Survived"

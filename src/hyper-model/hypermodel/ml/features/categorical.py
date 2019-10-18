@@ -55,6 +55,7 @@ def one_hot_encode(dataframe: pd.DataFrame, uniques: Dict[str, List[str]], throw
                 if s not in feature_value_list:
                     raise Exception(f"The value '{s}' has not been seen before in feature '{feature}', unable to one_hot_encode")
 
+
         for feature_value in feature_value_list:
             # Track a new column list that gets a "1" if it matches and "0" otherwise
             one_hot_col = (dataframe[feature] == feature_value).astype(int)

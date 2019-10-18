@@ -7,17 +7,19 @@ import gitlab
 
 from typing import List, Dict
 
-from hypermodel.platform.gcp.services import GooglePlatformServices
+from abc import ABC, abstractproperty
+
 from hypermodel.utilities.file_hash import file_md5
 from hypermodel.ml.features.categorical import (
     get_unique_feature_values,
     one_hot_encode,
 )
 from hypermodel.ml.features.numerical import describe_features
+from hypermodel.platform.abstract.services import PlatformServicesBase
 
 
 class ModelContainer:
-    config: GooglePlatformServices
+    config: PlatformServicesBase
     all_features: List[str]
     features_categorical: List[str]
     target: str
@@ -31,7 +33,7 @@ class ModelContainer:
         features_numeric: List[str],
         features_categorical: List[str],
         target: str,
-        services: GooglePlatformServices,
+        services: PlatformServicesBase,
     ):
         self.project_name = project_name
         self.name = name

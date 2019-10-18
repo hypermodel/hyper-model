@@ -83,8 +83,8 @@ def train(model_container, data_frame):
     feature_matrix = build_feature_matrix(model_container, data_frame)
     targets = data_frame[model_container.target]
 
-    # classifier = XGBClassifier()
-    # model = classifier.fit(feature_matrix, targets, verbose=True)
+    classifier = XGBClassifier()
+    model = classifier.fit(feature_matrix, targets, verbose=True)
     # classifier = KNeighborsClassifier()
     # model = classifier.fit(feature_matrix, targets)
     # classifier = SVC()
@@ -99,8 +99,8 @@ def train(model_container, data_frame):
     # model = classifier.fit(feature_matrix, targets)
     # classifier = MLPClassifier()
     # model = classifier.fit(feature_matrix, targets)
-    classifier = QuadraticDiscriminantAnalysis()
-    model = classifier.fit(feature_matrix, targets)
+    # classifier = QuadraticDiscriminantAnalysis()
+    # model = classifier.fit(feature_matrix, targets)
     
     return model
 
