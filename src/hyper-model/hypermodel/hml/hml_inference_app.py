@@ -79,6 +79,7 @@ class HmlInferenceApp:
     def cli_inference_group(context):
         pass
 
+    @click.pass_context
     def start_dev(self):
         """
         Start the Flask App in development mode
@@ -87,6 +88,7 @@ class HmlInferenceApp:
         logging.info(f"Development API Starting up on {self.port}")
         self.flask.run(host="127.0.0.1", port=self.port)
 
+    @click.pass_context
     def start_prod(self):
         """
         Start the Flask App in Production mode (via Waitress)

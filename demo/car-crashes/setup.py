@@ -50,5 +50,5 @@ setup(
     ],
     python_requires=">=3.5.3",
     include_package_data=True,
-    entry_points={"console_scripts": ["crashed = crashed.__main__:main"]},
+    entry_points={"console_scripts": ["crashed = crashed.crashed:main"]},
 )

@@ -10,10 +10,12 @@ config = {
     "port": 9000
 }
 
+
 def op_configurator(op):
     op.with_secret("tester", "/secret/tester")
     op.with_env("param_a", "value_1")
     return op
+
 
 app = hml.HmlApp(name="model_app", platform="local", config=config)
 app.pipelines.configure_op(op_configurator)
@@ -21,26 +23,24 @@ app.pipelines.configure_op(op_configurator)
 
 @hml.op()
 @hml.option('-f', '--firstname', required=True, help='The users first name')
-def step_a(firstname):
-    print(f"hello {firstname}")
+def step_a(ctx, firstname):
+    print(f"Hello {firstname}")
 
 
 @hml.op()
 @hml.option('-f', '--firstname', required=True, help='The users first name')
-def step_b(firstname):
+def step_b(ctx, firstname):
     print(f"goodbye {firstname}")
 
 
 @hml.pipeline(app=app)
 # @hml.option('-f', '--firstname', required=True, help='The users first name')
-def my_pipeline():
-    print(f"Executing my pipeline (dsl style)")
+def simple_pipeline():
+    a = step_a(firstname="Tez")
+    b = step_b(firstname="Tez")
 
-    a = step_a(firstname="tez")
-    b = step_b(firstname="caity")
-
-    # b.after(a)
-    a.after(b)
+    b.after(a)
+    # a.after(b)
 
 
 # Kick off the CLI processor

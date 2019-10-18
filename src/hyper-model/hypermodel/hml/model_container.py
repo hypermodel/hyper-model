@@ -38,6 +38,7 @@ class ModelContainer:
         self.services = services
         self.features_numeric = features_numeric
         self.features_categorical = features_categorical
+        self.features_all = features_numeric+features_categorical
         self.target = target
 
         # File name helpers

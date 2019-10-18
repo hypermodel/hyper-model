@@ -11,6 +11,7 @@ from hypermodel.utilities.k8s import sanitize_k8s_name
 _current_pipeline = None
 _old_pipeline = None
 
+
 def _pipeline_enter(pipeline):
     global _current_pipeline
     global _old_pipeline
@@ -19,12 +20,12 @@ def _pipeline_enter(pipeline):
     _old_pipeline = _current_pipeline
     _current_pipeline = pipeline
 
+
 def _pipeline_exit():
     global _current_pipeline
     global _old_pipeline
 
     _current_pipeline = _old_pipeline
-
 
 
 class HmlContainerOp(object):
@@ -62,11 +63,8 @@ class HmlContainerOp(object):
         # later (e.g. at the Compile step)
         self.cli_command = click.command(name=self.name)(self.func)
 
-
         self.pipeline._add_op(self)
-        
 
-        
     def invoke(self):
         """
         Actually invoke the function that this ContainerOp refers
@@ -105,7 +103,7 @@ class HmlContainerOp(object):
 
     def with_secret(self, secret_name: str, mount_path: str):
         volume_name = secret_name
-        
+
         self.op.add_volume(
             k8s_client.V1Volume(
                 name=volume_name,
@@ -120,8 +118,10 @@ class HmlContainerOp(object):
                 mount_path=mount_path,
             )
         )
-        
         return self
+
+    def with_gcp_auth(self, secret_name):
+        self.op.apply(use_gcp_secret(secret_name))
 
     def with_env(self, variable_name, value):
         """
@@ -147,176 +147,3 @@ class HmlContainerOp(object):
                 mount_path=path,
             )
         )
-
-    # def bind_output_artifact_path(self, name: str, path: str):
-    #     """
-    #     Add an artifact to the Kubeflow Pipeline Operation
-    #     using the ``name`` provided with the content from
-    #     the ``path`` provided
-
-    #     Args:
-    #         name (str): The name of the output artifact
-    #         path (str): The path to find the content for the artifact
-
-    #     Returns:
-    #         A reference to the current GcpBaseOp (for chaining)
-    #     """
-
-    #     self.output_artifact_paths[name, path]
-    #     return self
-
-    # def bind_output_file_path(self, name, path):
-    #     """
-    #     Add an output file to the Kubeflow Pipeline Operation
-    #     using the ``name`` provided with the content from
-    #     the ``path`` provided
-
-    #     Args:
-    #         name (str): The name of the output file
-    #         path (str): The path to find the content for the file
-
-    #     Returns:
-    #         A reference to the current GcpBaseOp (for chaining)
-    #     """
-    #     self.output_files[name, path]
-
-    # def bind_env(self, variable_name: str, value: str):
-    #     """
-    #     Create an environment variable for the container with the given value
-
-    #     Args:
-    #         variable_name (str): The name of the variable in the container
-    #         value (str): The value to bind to the variable
-
-    #     Returns:
-    #         A reference to the current GcpBaseOp (for chaining)
-
-    #     """
-    #     self.data[variable_name] = value
-    #     return self
-
-    # def bind_secret(self, secret_name: str, mount_path: str):
-    #     """
-    #     Bind a secret with the name ``secret_name`` from Kubernetes (in the
-    #     same namespace as the container) to the specified ``mount_path``
-
-    #     Args:
-    #         secret_name (str): The name of the secret to mount
-    #         mount_path (str): The path to mount the secret to
-
-    #     Returns:
-    #         A reference to the current GcpBaseOp (for chaining)
-    #     """
-    #     self.secrets[secret_name] = mount_path
-    #     return self
-
-    # def build_container_op(self, overrides=dict()):
-    #     """
-    #     Generate a ContainerOp object from all the configuration stored as a
-    #     part of this Op.
-
-    #     Args:
-    #         overrides (Dict[str,str]): Override the bound variables with these values
-
-    #     Returns:
-    #         ContainerOp using settins from this op
-    #     """
-
-    #     return self._build_container_op(overrides=overrides)
-
-    # def get(self, key: str):
-    #     """
-    #     Get the value of a variable bound to this Operation, returning
-    #     None if the ``key`` is not found.
-
-    #     Args:
-    #         key (str): The key to get the value of
-
-    #     Returns
-    #         The value of the given ``key``, or None if the key is not
-    #         found in currently bound values.
-    #     """
-    #     if key in self.data:
-    #         return self.data[key]
-
-    #     return None
-
-    # def __getitem__(self, key: str):
-    #     """
-    #     Get the value of a variable bound to this Operation, returning
-    #     None if the ``key`` is not found.
-
-    #     Args:
-    #         key (str): The key to get the value of
-
-    #     Returns
-    #         The value of the given ``key``, or None if the key is not
-    #         found in currently bound values.
-    #     """
-    #     return self.get(key)
-
-    # # Here be Private methods not to be relied upon
-    # def _mount_empty_dir(self, op, name: str, path: str):
-    #     # Add a writable volume
-    #     op.add_volume(
-    #         k8s_client.V1Volume(
-    #             name=name,
-    #             empty_dir=k8s_client.V1EmptyDirVolumeSource()
-    #         )
-    #     )
-    #     op.add_volume_mount(
-    #         k8s_client.V1VolumeMount(
-    #             name=name,
-    #             mount_path=path,
-    #         )
-    #     )
-
-    # def _build_container_op(self, overrides=dict()):
-
-    #     # Mount an empty direcotry for us to write output to
-    #     self._mount_empty_dir(op, "artifacts", self.kfp_artifact_path)
-
-    #     # # Apply the GCP Auth secret
-    #     # if not self.gcp_auth_secret is None:
-    #     #     op.apply(use_gcp_secret(self.gcp_auth_secret))
-
-    #     # Apply other secrets
-    #     for secret_name in self.secrets:
-    #         mount_path = self.secrets[secret_name]
-    #         op.apply(self._bind_secret(secret_name, mount_path))
-
-    #     logging.info(f"Build Container {self.pipeline_name}.{self.name}")
-
-    #     # All my parameters
-    #     for name, value in self.data.items():
-    #         logging.info(f"\tContainer.ENV: {name}={value}")
-    #         op.container.add_env_variable(V1EnvVar(name=name, value=str(value)))
-
-    #     for name, value in overrides.items():
-    #         logging.info(f"\tContainer.ENV: {name}={value} (override)")
-    #         op.container.add_env_variable(V1EnvVar(name=name, value=str(value)))
-
-    #     return op
-
-    # def _bind_secret(self, secret_name: str, mount_path: str):
-    #     volume_name = secret_name
-
-    #     def _use_secret(task):
-    #         return (
-    #             task
-    #             .add_volume(
-    #                 k8s_client.V1Volume(
-    #                     name=volume_name,
-    #                     secret=k8s_client.V1SecretVolumeSource(
-    #                         secret_name=secret_name,
-    #                     )
-    #                 )
-    #             )
-    #             .add_volume_mount(
-    #                 k8s_client.V1VolumeMount(
-    #                     name=volume_name,
-    #                     mount_path=mount_path,
-    #                 )
-    #             )
-    #         )
-    #     return _use_secret

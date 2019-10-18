@@ -1,34 +1,61 @@
-import click
-import os
-import pandas as pd
 import logging
+import click
+from typing import Dict, List
 from xgboost import XGBClassifier
-from typing import List, Dict
+from hypermodel import hml
+from hypermodel.features import one_hot_encode
+from crashed.crashed_shared import BQ_TABLE_TRAINING, BQ_TABLE_TEST, MODEL_NAME
+from crashed.crashed_shared import build_feature_matrix
 
 
-from hypermodel.platform.gcp.services import GooglePlatformServices
-from hypermodel.hml.model_container import ModelContainer
-from hypermodel.hml.features.categorical import (
-    get_unique_feature_values,
-    one_hot_encode,
-)
-from hypermodel.utilities.gitlab import create_model_merge_request
+@hml.op()
+@hml.pass_context
+def create_training(ctx):
+    services: GooglePlatformServices = ctx.obj["services"]
+    model_container = get_model_container(ctx)
 
-from crashed.model_config import crashed_model_container, build_feature_matrix
-from crashed.model_config import BQ_TABLE_TRAINING, BQ_TABLE_TEST
+    column_string = ",".join(model_container.features_all)
+
+    query = f"""
+        SELECT {column_string}, {model_container.target}
+        FROM crashed.crashes_raw 
+        WHERE accident_date BETWEEN '2013-01-01' AND '2017-01-01' 
+    """
+    services.warehouse.select_into(
+        query, services.config.warehouse_dataset, BQ_TABLE_TRAINING
+    )
+
+    logging.info(f"Wrote training set to {BQ_TABLE_TRAINING}.  Success!")
 
 
-@click.group()
-def training():
-    """ Pipeline for training the XGBoost model"""
-    pass
+@hml.op()
+@hml.pass_context
+def create_test(ctx):
+    services: GooglePlatformServices = ctx.obj["services"]
+    model_container = get_model_container(ctx)
+
+    column_string = ",".join(model_container.features_all)
+
+    query = f"""
+        SELECT {column_string}, {model_container.target}
+        FROM crashed.crashes_raw 
+        WHERE accident_date > '2018-01-01'
+    """
+    services.warehouse.select_into(
+        query, services.config.warehouse_dataset, BQ_TABLE_TEST
+    )
+
+    logging.info(f"Wrote test set to {BQ_TABLE_TEST}.  Success!")
 
 
-@training.command()
-@click.pass_context
+@hml.op()
+@hml.pass_context
 def train_model(ctx):
     services: GooglePlatformServices = ctx.obj["services"]
-    model_container: ModelContainer = ctx.obj["container"]
+    app: HmlApp = ctx.obj["app"]
+    model_container = get_model_container(ctx)
+
+    print(model_container)
 
     training_df = services.warehouse.dataframe_from_table(
         services.config.warehouse_dataset, BQ_TABLE_TRAINING
@@ -61,6 +88,12 @@ def train_model(ctx):
     model_container.publish()
 
     return
+
+
+def get_model_container(ctx):
+    models: Dict[str, ModelContainer] = ctx.obj["models"]
+    model_container = models[MODEL_NAME]
+    return model_container
 
 
 def train(model_container, data_frame):

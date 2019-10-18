@@ -63,7 +63,7 @@ class HmlPipeline:
         print(f"hm> run: {run_name}")
         client = Client(None, None)
 
-        _pipeline_enter(self) 
+        _pipeline_enter(self)
         client.create_run_from_pipeline_func(self.pipeline_func, deploy_args, run_name=run_name, experiment_name=experiment_name)
         _pipeline_exit()
 
@@ -90,7 +90,7 @@ class HmlPipeline:
 
         task = self.task_map[task_name]
         hml_op = self.ops_dict[task_name]
-        
+
         # Run my dependencies recusively
         if "dependencies" in task:
             for d in task["dependencies"]:
@@ -110,7 +110,7 @@ class HmlPipeline:
 
     def _add_op(self, hmlop):
         self.ops_list.append(hmlop)
-        
+
         self.ops_dict[hmlop.k8s_name] = hmlop
 
         for f in self.op_builders:
@@ -119,14 +119,12 @@ class HmlPipeline:
         # Register the op as a command within our pipeline command
         self.cli_pipeline.add_command(hmlop.cli_command)
 
-
     def __getitem__(self, key: str):
         """
         Get a reference to a `ContainerOp` added to this pipeline
         via a call to `self.add_op`
         """
         return self.ops_dict[key]
-
 
     def _get_workflow(self):
         """
@@ -136,18 +134,13 @@ class HmlPipeline:
         # Go and compile the workflow, which will mean executing our
         # pipeline function.  We store a global reference to this pipeline
         # while we are compiling to allow us to easily bind the pipeline
-        # to the `HmlContainerOp`, without damaging the re-usabulity of the 
+        # to the `HmlContainerOp`, without damaging the re-usabulity of the
         # op.
-        _pipeline_enter(self) 
+        _pipeline_enter(self)
         workflow = Compiler()._compile(self.pipeline_func)
-
-        workflow_json = json.dumps(workflow, indent=4)
-        print(f"Pipeline compiled: {workflow_json}")
-
         _pipeline_exit()
 
         return workflow
-        
 
 
 def _pass():
