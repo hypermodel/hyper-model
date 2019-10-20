@@ -1,0 +1,3 @@
+[console_scripts]
+titanic = titanic.__main__:main
+

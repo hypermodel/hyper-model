@@ -30,6 +30,17 @@ hypermodel/kubeflow/__init__.py
 hypermodel/kubeflow/deploy_dev.py
 hypermodel/kubeflow/deploy_prod.py
 hypermodel/kubeflow/kubeflow_client.py
+<<<<<<< HEAD
+=======
+hypermodel/kubeflow/op/__init__.py
+hypermodel/ml/__init__.py
+hypermodel/ml/model_container.py
+hypermodel/ml/features/__init__.py
+hypermodel/ml/features/categorical.py
+hypermodel/ml/features/numerical.py
+hypermodel/ml/prediction/__init__.py
+hypermodel/ml/prediction/prediction_app.py
+>>>>>>> story/hp-004-multi-stack
 hypermodel/model/__init__.py
 hypermodel/model/table_column.py
 hypermodel/model/table_schema.py

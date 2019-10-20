@@ -1,0 +1,112 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: api-crashed
+    namespace: kubeflow
+    labels:
+        app: api-crashed
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: api-crashed
+    template:
+        metadata:
+            labels:
+                app: api-crashed
+        spec:
+            containers:
+                - name: api-crashed
+                  # The livenessProbe is important for restarting the pod if its broken
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 8000
+                          httpHeaders:
+                              - name: X-Liveness-Probe
+                                value: Liveness
+                      initialDelaySeconds: 60
+                      periodSeconds: 60
+                  # The readinessProbe is important the Ingress Loadbalancer Backend
+                  # and decidign whether to show a 502 error or direct traffic to the pod
+                  readinessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 8000
+                          httpHeaders:
+                              - name: X-Readiness-Probe
+                                value: Readiness
+                      initialDelaySeconds: 60
+                      periodSeconds: 60
+                  image: __DOCKER_CONTAINER__
+                  command:
+                      - crashed
+                      - api
+                      - start-prod
+                  ports:
+                      - containerPort: 8000
+                  resources:
+                      requests:
+                          cpu: "0.1"
+                          memory: "100Mi"
+                  imagePullPolicy: Always
+                  env:
+                      - name: GOOGLE_APPLICATION_CREDENTIALS
+                        value: "/secrets/svcacc-tez-kf/svcacc-tez-kf.json"
+                      - name: GITLAB_COMMIT
+                        value: __GITLAB_COMMIT__
+                      - name: TMP_PATH
+                        value: "/tmp"
+                  volumeMounts:
+                      - name: svcacc-tez-kf
+                        mountPath: "/secrets/svcacc-tez-kf"
+                        readOnly: true
+
+                      - mountPath: /tmp
+                        name: tmp-volume
+            volumes:
+                - name: svcacc-tez-kf
+                  secret:
+                      secretName: svcacc-tez-kf
+                - name: tmp-volume
+                  emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: api-crashed-nodeport
+    namespace: kubeflow
+spec:
+    type: NodePort
+    selector:
+        app: api-crashed
+    ports:
+        - protocol: TCP
+          targetPort: 8000
+          port: 8000
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: ingress-crashed-kubeflow
+    namespace: kubeflow
+    annotations:
+        kubernetes.io/ingress.global-static-ip-name: "k8s-ingress-ip"
+        kubernetes.io/ingress.class: "gce"
+        kubernetes.io/ingress.allow-http: "true"
+spec:
+    rules:
+        - host: crashed.growingdata.com.au
+          http:
+              paths:
+                  - backend:
+                        serviceName: api-crashed-nodeport
+                        servicePort: 8000
+        - host: crashed.hypermodel.com
+          http:
+              paths:
+                  - backend:
+                        serviceName: api-crashed-nodeport
+                        servicePort: 8000
