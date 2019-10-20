@@ -15,11 +15,7 @@ from hypermodel.features import (
     one_hot_encode,
     describe_features
 )
-<<<<<<< HEAD:src/hyper-model/hypermodel/hml/model_container.py
-=======
-from hypermodel.ml.features.numerical import describe_features
 from hypermodel.platform.abstract.services import PlatformServicesBase
->>>>>>> story/hp-004-multi-stack:src/hyper-model/hypermodel/ml/model_container.py
 
 
 class ModelContainer:
