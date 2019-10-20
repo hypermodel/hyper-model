@@ -9,4 +9,4 @@ export WAREHOUSE_DATASET="crashed"
 export K8S_NAMESPACE="kubeflow"
 export K8S_CLUSTER="kfw-svc-test"
 
-export KFP_ARTIFACT_PATH="/artifacts"
+export KFP_ARTIFACT_PATH="./artifacts"

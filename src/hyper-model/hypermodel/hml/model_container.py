@@ -148,39 +148,6 @@ class ModelContainer:
         }
         return reference
 
-        # # Write the file to our temp directory so that we can use it elsewhere.
-        # reference_file_path = self.get_local_path(self.filename_reference)
-        # with open(reference_file_path, "w") as f:
-        #     json.dump(reference, f, sort_keys=True, indent=4, separators=(",", ": "))
-
-        # return reference_file_path
-
-        # create_model_merge_request(
-        #     config=config,
-        #     model_reference=reference,
-        #     model_reference_path=self.filename_reference,
-        #     description="New models!",
-        #     target_branch="master",
-        #     labels=["model-bot"],
-        # )
-
-        # # All done, we have a merge request!
-        # return reference
-
-
-# The following was commented by Amit on 2019-10-14 as there was an error thrown
-# looking at the similarity in parameter naming in the class GitHostBase's method create_merge_request
-# renaming the parameters and methods accordingly below
-    # def create_merge_request(self, reference, description="New models!"):
-    #     self.services.git.create_model_merge_request(
-    #         config=self.services.config,
-    #         model_reference=reference,
-    #         model_reference_path=self.filename_reference,
-    #         description="New models!",
-    #         target_branch="master",
-    #         labels=["model-bot"],
-    #     )
-
 
     def create_merge_request(self, reference, description="New models!"):
         self.services.git.create_merge_request(
@@ -207,6 +174,11 @@ class ModelContainer:
         return self.model
 
     def get_local_path(self, filename):
+        path = f"{self.services.config.kfp_artifact_path}"
+        # If the path does not exist, then create it.
+
+        if not os.path.exists(path):
+            os.makedirs(path)
         return f"{self.services.config.kfp_artifact_path}/{filename}"
 
     def get_bucket_path(self, filename):

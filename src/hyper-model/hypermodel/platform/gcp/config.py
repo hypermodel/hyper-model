@@ -35,7 +35,7 @@ class GooglePlatformConfig():
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')
         self.k8s_cluster = self.get_env('K8S_CLUSTER')
 
-        self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', '.')
+        self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', './artifacts')
 
         self.ci_commit = self.get_env("CI_COMMIT_SHA", "no-commit")
 
