@@ -29,3 +29,5 @@ packages
 artifacts/**
 artifacts/**
 **/docs/_build/**
+*.db
+*.dat
