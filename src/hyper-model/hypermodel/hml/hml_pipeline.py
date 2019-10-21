@@ -6,6 +6,8 @@ from kfp import Client
 from kfp.compiler import Compiler
 from typing import List, Dict, Callable
 from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
+from hypermodel.kubeflow.kubeflow_client import KubeflowClient
+from hypermodel.kubeflow.deploy import deploy_pipeline
 
 
 class HmlPipeline:
@@ -14,6 +16,9 @@ class HmlPipeline:
         self.name = pipeline_func.__name__
         self.pipeline_func = pipeline_func
         self.kubeflow_pipeline = dsl.pipeline(pipeline_func, pipeline_func.__name__)
+
+        self.cron = None
+        self.experiment = None
 
         # The methods we use to configure our Ops for running in Kubeflow
         self.op_builders = op_builders
@@ -30,45 +35,36 @@ class HmlPipeline:
 
         # Create a command to execute the whole pipeline
         self.cli_all = click.command(name="run-all")(self.run_all)
+
         self.deploy_dev = click.command(name="deploy-dev")(self.deploy_dev)
+        self.deploy_prod = click.command(name="deploy-prod")(self.deploy_prod)
 
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
+        self.cli_pipeline.add_command(self.deploy_prod)
 
         self.workflow = self._get_workflow()
         self.dag = self.get_dag()
         self.tasks = self.dag["tasks"]
         self.task_map = dict()
+
         for t in self.tasks:
             task_name = t["name"]
             self.task_map[task_name] = t
 
-    def deploy_dev(self):
-        """
-        Deploy the Kubeflow Pipelines Pipeline (e.g. a method decorated with `@dsl.pipeline`)
-        to Kubeflow and execute it.
+    def with_cron(self, cron):
+        self.cron = cron
+        return self
 
-        Returns:
-            True if the deployment suceeds
-        """
+    def with_experiment(self, experiment):
+        self.experiment = experiment
+        return self
 
-        deploy_args = dict()
-        pipeline_name = self.pipeline_func.__name__
+    def deploy_dev(self, host: str = None, client_id: str = None, namespace: str = None):
+        deploy_pipeline(self, "dev", host, client_id, namespace)
 
-        experiment_name = f"{pipeline_name}_tests"
-        run_name = pipeline_name + ' ' + datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-
-        print(f"hm> pipeline: {pipeline_name}")
-        print(f"hm> experiment: {experiment_name}")
-        print(f"hm> run: {run_name}")
-        client = Client(None, None)
-
-        _pipeline_enter(self)
-        client.create_run_from_pipeline_func(self.pipeline_func, deploy_args, run_name=run_name, experiment_name=experiment_name)
-        _pipeline_exit()
-
-        print(f"hm> Deployed and running!")
-        return True
+    def deploy_prod(self, host: str = None, client_id: str = None, namespace: str = None):
+        deploy_pipeline(self, "prod", host, client_id, namespace)
 
     def run_all(self, **kwargs):
         run_log = dict()

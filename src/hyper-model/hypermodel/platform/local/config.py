@@ -21,9 +21,6 @@ class LocalConfig():
         self.data[key] = value
         return value
 
-
-
-
     def __init__(self):
 
         self.data: Dict[str, str] = dict()
@@ -38,7 +35,7 @@ class LocalConfig():
         self.lake_path = self.get_env("LAKE_PATH")
 
         self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET')
-        self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", "australia-southeast1")
+        self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", "./data")
 
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')
         self.k8s_cluster = self.get_env('K8S_CLUSTER')
@@ -56,18 +53,4 @@ class LocalConfig():
         self.temp_path = self.get_env("TEMP_PATH", "/tmp")
         self.CHUNK_SIZE = 10485760
 
-        # <Start> Added while implementing LOCAL Start
-        self.default_sql_lite_db_file=get_default_sql_lite_file_name()
-
-
-
-        # <End> Added while implementing LOCAL Start
-
-
-
-
-#creating a method for SQL lite
-# filename resolution as in the future, we may 
-# want to create new files for different calculations
-def get_default_sql_lite_file_name():
-    return "C:\\Amit\\hypermodel\\hyper-model\\src\\hyper-model\\hypermodel\\platform\\local\\titanic_db.dat"
+        self.default_sql_lite_db_file = f"{self.warehouse_location}/default.db"

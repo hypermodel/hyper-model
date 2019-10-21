@@ -24,11 +24,10 @@ def main():
         environment variables so that it can connect to our other
         services
         """
-
         op.with_gcp_auth("svcacc-tez-kf")  # Bind my secret service account
         return op
 
-    @hml.pipeline(app=app)
+    @hml.pipeline(app=app, cron="0 0 12 ? * MON-FRI *", experiment="demos")
     def crashed_pipeline():
         """
         This is where we define the workflow for this pipeline purely
@@ -39,6 +38,7 @@ def main():
 
         train_model_op = train_model()
 
+        # Set up the dependencies for this model
         (
             train_model_op
             .after(create_training_op)

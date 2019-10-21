@@ -13,6 +13,7 @@ packages
 .vs
 *.sqlite
 *.csv
+*.db
 *.zip
 **/.vscode/**
 **/.cache/**
