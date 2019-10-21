@@ -25,7 +25,6 @@ class GooglePlatformConfig():
         self.gcp_project = self.get_env("GCP_PROJECT")
         self.gcp_zone = self.get_env("GCP_ZONE")
 
-        print("LAKE_BUCKET is "+self.get_env("LAKE_BUCKET"))
         self.lake_bucket = self.get_env("LAKE_BUCKET")
         self.lake_path = self.get_env("LAKE_PATH")
 

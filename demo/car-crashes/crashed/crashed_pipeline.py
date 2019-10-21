@@ -87,8 +87,11 @@ def train_model(ctx):
     # Publish this version of the model & data analysis
     ref = model_container.publish()
 
-    # Create a merge request for this model to be deployed
-    model_container.create_merge_request(ref, description="My new model")
+    # Create a merge request for this model to be deployed (don't do it here
+    # because we don't want to polute the repository with merge requests relating
+    # to test runs)
+
+    # model_container.create_merge_request(ref, description="My new model")
     return
 
 

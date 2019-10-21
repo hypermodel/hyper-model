@@ -15,6 +15,7 @@ import importlib.util
 import inspect
 import logging
 from .kubeflow_client import KubeflowClient
+from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
 
 
 def deploy_pipeline(pipeline, environment: str= "dev", host: str= None, client_id: str= None, namespace: str= None):
@@ -39,16 +40,21 @@ def deploy_pipeline(pipeline, environment: str= "dev", host: str= None, client_i
         client.delete_pipeline(kf_existing_pipeline)
         logging.info(f"Deleted existing pipeline: {kf_existing_pipeline.name} ({kf_existing_pipeline.id})")
 
-    kf_pipeline = client.create_pipeline(pipeline.pipeline_func)
+
+    _pipeline_enter(pipeline)
+    kf_pipeline = client.create_pipeline(pipeline.pipeline_func, pipeline_env_name)
+    _pipeline_exit()
+
+
     if pipeline.experiment is None:
         pipeline.experiment = f"{pipeline_env_name} experiments"
 
     if pipeline.cron is not None:
         job_name = f"{pipeline_env_name} cron"
-        kf_existing_experiment = client.find_experiment(name=pipeline.experiment)
-        if kf_existing_experiment is None:
+        kf_experiment = client.find_experiment(name=pipeline.experiment)
+        if kf_experiment is None:
             client.create_experiment(pipeline.experiment)
-            kf_existing_experiment = client.find_experiment(name=pipeline.experiment)
+            kf_experiment = client.find_experiment(name=pipeline.experiment)
 
         kf_existing_job = client.find_job(job_name)
         if kf_existing_job is not None:
@@ -58,7 +64,7 @@ def deploy_pipeline(pipeline, environment: str= "dev", host: str= None, client_i
         kf_job = client.create_job(job_name, kf_pipeline, kf_experiment,
                                    description="{pipeline_env_name} cron job",
                                    enabled=True,
-                                   max_concurrency=max_concurrency,
+                                   max_concurrency=1,
                                    cron=pipeline.cron,
                                    )
 

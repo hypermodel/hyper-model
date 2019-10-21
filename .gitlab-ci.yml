@@ -89,10 +89,6 @@ demo-crashed-deploy:
     - export GCP_ZONE="australia-southeast1-a"
     - export KFAPP="kf-crashed"
 
-    - export WAREHOUSE_DATASET=crashed
-    - export WAREHOUSE_LOCATION=australia-southeast1
-    - export LAKE_BUCKET=grwdt-dev-lake
-    - export LAKE_PATH=crashed
     - export K8S_NAMESPACE=kubeflow
     - export K8S_CLUSTER="kf-crashed"
     - export GOOGLE_APPLICATION_CREDENTIALS=./kubeflow_ci_svcacc.json

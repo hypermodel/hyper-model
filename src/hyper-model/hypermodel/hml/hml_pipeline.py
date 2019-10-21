@@ -36,8 +36,8 @@ class HmlPipeline:
         # Create a command to execute the whole pipeline
         self.cli_all = click.command(name="run-all")(self.run_all)
 
-        self.deploy_dev = click.command(name="deploy-dev")(self.deploy_dev)
-        self.deploy_prod = click.command(name="deploy-prod")(self.deploy_prod)
+        self.deploy_dev = self.apply_deploy_options(click.command(name="deploy-dev")(self.deploy_dev))
+        self.deploy_prod = self.apply_deploy_options(click.command(name="deploy-prod")(self.deploy_prod))
 
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
@@ -51,6 +51,12 @@ class HmlPipeline:
         for t in self.tasks:
             task_name = t["name"]
             self.task_map[task_name] = t
+
+    def apply_deploy_options(self, func):
+        func = click.option("-h", "--host", required=False, help="Endpoint of the KFP API service to connect.")(func)
+        func = click.option("-c", "--client-id", required=False, help="Client ID for IAP protected endpoint.")(func)
+        func = click.option("-n", "--namespace", required=False, default="kubeflow", help="Kubernetes namespace to connect to the KFP API.")(func)
+        return func
 
     def with_cron(self, cron):
         self.cron = cron

@@ -11,7 +11,7 @@ def main():
     config = {
         "package_name": "crashed",
         "script_name": "crashed",
-        "container_url": "growingdata/demo_crashed",
+        "container_url": "growingdata/demo-crashed:tez-test",
         "port": 8000
     }
 
@@ -20,14 +20,30 @@ def main():
 
     def op_configurator(op):
         """
-        Configure our training Pod with the right secrets and 
-        environment variables so that it can connect to our other
-        services
+        Configure our Pipelines Pods with the right secrets and 
+        environment variables so that it can work with the cloud
+        providers services
         """
-        op.with_gcp_auth("svcacc-tez-kf")  # Bind my secret service account
+        (op
+            # Service account for authentication / authorisation
+            .with_gcp_auth("svcacc-tez-kf")  
+            .with_env("GCP_PROJECT", "grwdt-dev")   
+            .with_env("GCP_ZONE", "australia-southeast1-a")   
+            .with_env("K8S_NAMESPACE", "kubeflow") 
+            .with_env("K8S_CLUSTER", "kf-crashed") 
+            # Data Lake Config
+            .with_env("LAKE_BUCKET", "grwdt-dev-lake") 
+            .with_env("LAKE_PATH", "crashed") 
+            # Data Warehouse Config
+            .with_env("WAREHOUSE_DATASET", "crashed") 
+            .with_env("WAREHOUSE_LOCATION", "australia-southeast1") 
+            # Track where we are going to write our artifacts
+            .with_empty_dir("artifacts", "/artifacts")
+            .with_env("KFP_ARTIFACT_PATH", "/artifacts") 
+        )
         return op
 
-    @hml.pipeline(app=app, cron="0 0 12 ? * MON-FRI *", experiment="demos")
+    @hml.pipeline(app=app, cron="0 0 * * *", experiment="demos")
     def crashed_pipeline():
         """
         This is where we define the workflow for this pipeline purely
@@ -35,7 +51,6 @@ def main():
         """
         create_training_op = create_training()
         create_test_op = create_test()
-
         train_model_op = train_model()
 
         # Set up the dependencies for this model
@@ -52,4 +67,4 @@ def main():
     app.start()
 
 
-main()
+# main()

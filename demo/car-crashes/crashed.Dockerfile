@@ -19,15 +19,17 @@ RUN pip install \
     xgboost \
     sklearn 
 
-ADD . /crashed
+ADD ./src/hyper-model /crashed/hyper-model
+ADD ./demo/car-crashes /crashed/car-crashes
 
 
-
+# Install the current source code version of HyperModel
 WORKDIR /crashed/hyper-model
+RUN pwd
 RUN pip install -e .
 
-
-WORKDIR /crashed/demo-crashed
+# Install our actual demo
+WORKDIR /crashed/car-crashes
 RUN pip install -e .
 
 

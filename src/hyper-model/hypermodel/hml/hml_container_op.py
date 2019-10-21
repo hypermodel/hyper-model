@@ -49,12 +49,13 @@ class HmlContainerOp(object):
 
         # Store a reference to the current pipeline
         self.pipeline = _current_pipeline
+        print (f"HmlContainerOp() {self.name} -> {_current_pipeline.name}")
 
         self.op = dsl.ContainerOp(
             name=f"{self.name}",
             image=self.pipeline.config["container_url"],
             command=self.pipeline.config["script_name"],
-            arguments=["pipeline", self.pipeline.name, self.name]
+            arguments=["pipelines", self.pipeline.name, self.name]
         )
         self.op.hml_op = self
 
@@ -122,6 +123,7 @@ class HmlContainerOp(object):
 
     def with_gcp_auth(self, secret_name):
         self.op.apply(use_gcp_secret(secret_name))
+        return self
 
     def with_env(self, variable_name, value):
         """
@@ -129,6 +131,7 @@ class HmlContainerOp(object):
         to use at runtime
         """
         self.op.container.add_env_variable(V1EnvVar(name=variable_name, value=str(value)))
+        return self
 
     def with_empty_dir(self, name: str, path: str):
         """
@@ -147,3 +150,4 @@ class HmlContainerOp(object):
                 mount_path=path,
             )
         )
+        return self

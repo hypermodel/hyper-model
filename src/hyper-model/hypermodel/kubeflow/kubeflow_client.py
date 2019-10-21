@@ -38,7 +38,7 @@ class KubeflowClient():
         self.kfp_runs = self._connect_runs_api()
         self.kfp_jobs = self._connect_jobs_api()
 
-    def create_pipeline(self, pipeline_func):
+    def create_pipeline(self, pipeline_func, pipeline_name):
         """
         Create a new Kubeflow Pipeline using the provided pipeline function
 
@@ -48,7 +48,6 @@ class KubeflowClient():
         Returns:
             The Kubeflow Pipeline object created
         """
-        pipeline_name = pipeline_func.__name__
 
         try:
             (_, pipeline_package_path) = tempfile.mkstemp(suffix='.zip')
