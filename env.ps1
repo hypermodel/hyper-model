@@ -10,3 +10,6 @@ $Env:K8S_NAMESPACE="kubeflow"
 $Env:K8S_CLUSTER="kfw-svc-test"
 
 $Env:KFP_ARTIFACT_PATH="."
+
+#For the Windows environment
+#usage env.ps1
