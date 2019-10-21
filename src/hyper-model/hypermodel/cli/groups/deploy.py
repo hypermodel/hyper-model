@@ -24,3 +24,4 @@ def deploy(ctx):
 @click.pass_context
 def prod(ctx, host, client_id, namespace, file):
     deploy_to_prod(host, client_id, namespace, file)
+

@@ -13,6 +13,7 @@ variables:
 stages:
   - build
   - test
+  - test-demo-crashed
   - deploy
   - release
   - infra
@@ -28,6 +29,9 @@ before_script:
   - export IMAGE_DOCKERHUB_HYPERMODEL_BASE="growingdata/hypermodel-base"
   - export IMAGE_DOCKERHUB_HYPERMODEL_CICD="growingdata/hypermodel-cicd"
   - export IMAGE_DOCKERHUB_HYPERMODEL="growingdata/hypermodel"
+
+  # Demo / Docker Images
+  - export DOCKERHUB_DEMOCRASHED="growingdata/demo-crashed"
 
   # Setup permissions for Docker to do all the things that need doing
   - echo "$GCR_CONTAINER_WRITER_KEY" > ./gcr-container-writer.json
@@ -63,6 +67,40 @@ build-image-hyper-model:
     - echo "Building..."
     - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG -f ./infra/docker/hypermodel.Dockerfile ./src/hyper-model
     - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
+
+#######################################
+####  TEST DEMO APPS
+#######################################
+demo-crashed-build:
+  stage: test-demo-crashed
+  script:
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+    - docker build -t $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA -f ./demo/car-crashes/crashed.Dockerfile .
+    - docker push $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
+
+demo-crashed-deploy:
+  stage: test-demo-crashed
+  script:
+    # Make sure that we know where our docker image is at
+    - export KF_DOCKER_IMAGE=$DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
+
+    # Dployment configuration
+    - export GCP_PROJECT="grwdt-dev"
+    - export GCP_ZONE="australia-southeast1-a"
+    - export KFAPP="kf-crashed"
+
+    - export WAREHOUSE_DATASET=crashed
+    - export WAREHOUSE_LOCATION=australia-southeast1
+    - export LAKE_BUCKET=grwdt-dev-lake
+    - export LAKE_PATH=crashed
+    - export K8S_NAMESPACE=kubeflow
+    - export K8S_CLUSTER="kf-crashed"
+    - export GOOGLE_APPLICATION_CREDENTIALS=./kubeflow_ci_svcacc.json
+    - echo "$KUBEFLOW_CI_SVCACC" > ./kubeflow_ci_svcacc.json
+    - gcloud container clusters get-credentials $KFAPP --zone $GCP_ZONE --project $GCP_PROJECT
+
+    # Do the actual deployment to Kubeflow to make sure everything works as expected
+    - crashed deploy-pipeline --pipeline-yaml=crashed_pipeline.yml --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $KFP_NAMESPACE
 
 ###############################################################
 ###  RELEASE

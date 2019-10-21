@@ -44,9 +44,9 @@ def option(*args, **kwargs):
     return _register
 
 
-def pipeline(app: HmlApp):
+def pipeline(app: HmlApp, cron: str = None, experiment: str = None):
     def _register(func):
-        pipe = app.pipelines.register_pipeline(func)
+        pipe = app.pipelines.register_pipeline(func, cron=cron, experiment=experiment)
 
         def _func_wrapper(*args, **kwargs):
             # Execute the function

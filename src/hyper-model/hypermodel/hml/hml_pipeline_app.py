@@ -39,11 +39,13 @@ class HmlPipelineApp:
         """
         return self.pipelines[key]
 
-    def register_pipeline(self, pipeline_func):
+    def register_pipeline(self, pipeline_func, cron: str, experiment: str):
         """
         Register a Kubeflow Pipeline (e.g. a function decorated with @model_pipeline)
         """
         pipe = HmlPipeline(self.config, self.cli_pipeline_group, pipeline_func, self.op_builders)
+        pipe.with_cron(cron)
+        pipe.with_experiment(experiment)
 
         self.pipelines[pipe.name] = pipe
 
