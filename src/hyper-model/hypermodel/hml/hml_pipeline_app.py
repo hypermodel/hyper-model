@@ -9,6 +9,14 @@ from hypermodel.hml.hml_pipeline import HmlPipeline
 from hypermodel.hml.hml_container_op import HmlContainerOp
 
 
+@click.group(name="pipelines")
+@click.pass_context
+def cli_pipeline_group(context):
+    # print(f"HmlPipelineApp.cli_pipeline_group: {context}")
+    # print(dir(context.command))
+    # context["pipeline_app"] = self
+    pass
+    
 class HmlPipelineApp:
     name: str
     config: Dict[str, str]
@@ -19,18 +27,11 @@ class HmlPipelineApp:
         self.services = services
         self.config = config
         self.cli_root = cli
-        self.cli_root.add_command(self.cli_pipeline_group)
+        self.cli_root.add_command(cli_pipeline_group)
 
         self.pipelines: Dict[str, HmlPipeline] = dict()
         self.op_builders = []
 
-    @click.group(name="pipelines")
-    @click.pass_context
-    def cli_pipeline_group(context):
-        # print(f"HmlPipelineApp.cli_pipeline_group: {context}")
-        # print(dir(context.command))
-        # context["pipeline_app"] = self
-        pass
 
     def __getitem__(self, key: str) -> HmlPipeline:
         """
@@ -43,7 +44,7 @@ class HmlPipelineApp:
         """
         Register a Kubeflow Pipeline (e.g. a function decorated with @model_pipeline)
         """
-        pipe = HmlPipeline(self.config, self.cli_pipeline_group, pipeline_func, self.op_builders)
+        pipe = HmlPipeline(self.config, cli_pipeline_group, pipeline_func, self.op_builders)
         pipe.with_cron(cron)
         pipe.with_experiment(experiment)
 
@@ -54,6 +55,3 @@ class HmlPipelineApp:
     def configure_op(self, func: Callable[[HmlContainerOp], HmlContainerOp]):
         self.op_builders.append(func)
         return self
-
-    def start(self):
-        cli(obj=context, auto_envvar_prefix="HML")

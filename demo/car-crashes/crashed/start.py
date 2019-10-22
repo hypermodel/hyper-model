@@ -4,8 +4,8 @@ from typing import Dict, List
 from hypermodel import hml
 
 from crashed.crashed_shared import crashed_model_container, build_feature_matrix
-from crashed.crashed_pipeline import create_training, create_test, train_model
-
+from crashed.pipeline import create_training, create_test, train_model
+from crashed.inferences import build_app
 
 def main():
     config = {
@@ -62,8 +62,15 @@ def main():
 
     crashed_model = crashed_model_container(app)
 
+    # Register our model reference
     app.register_model(crashed_model)
+
     app.pipelines.configure_op(op_configurator)
+    app.inference.load_model(crashed_model)
+
+    build_app(crashed_model, app.inference)
+
+
     app.start()
 
 

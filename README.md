@@ -57,90 +57,99 @@ def step_b(firstname):
 
 # Anatomy of an ML Project in Hyper Model
 
-Hyper Model Projects provide are self-contained Python Packages, providing all the code required for both Training and Prediction phase. Hyper Model Projects are executable locally as console scripts.
+Hyper Model Projects provide are self-contained Python Packages, providing all the code required for both Training and Inferences phases. Hyper Model Projects are executable locally as console scripts.
 
 Project layout:
 
 - demo_pkg/
-  - training
-    - extract_data.py
-      def extract_training()
-      def extract_test()
-    - features.py
-      def encode()
-      def normalize()
-    - training.py
-      def train_model()
-      def evaluate_model()
+  - demo
     - pipeline.py
-      def my_pipeline()
-  - prediction
-    - prediction.py
-      def start_dev()
-      def start_prod()
-      def batch_predict(csv_path)
+    - inference.py
+    - shared.py
+    - app.Dockerfile
+    - inference_deployment.yml
+    - start.py
+  - setup.py
+  - Readme.md
 
-Under this layout, you can invoke the feature.encode() function with the following command:
+Lets run through the purpose of each file:
 
-```
-demo training feature encode
-```
+## setup.py
 
-Similarly, to do a batch prediction, you could invoke the tool with:
+This file is reponsible for defining the Python Package that this application will be run as, as per
+any other python package.
 
-```
-demo prediction batch-predict --csv-path=./unlabeled.csv
-```
+## start.py
 
-To make this majesty real, all you need to do is to define your pipeline entrypoint with:
+This is our entrypoint into the application (HmlApp), along with its two central components the PipelineApp
+(used for data processing and training) and the InferenceApp (used for generating inferences / predictions
+via Json API).
 
-`my_pipeline.py`
+The `main` method in this file is the entry point which configures our app. The `op_configurator` method
+is used to configure the Kubeflow Pipeline Operation (Op), enabling us to bind secrets, environment variables
+and mount directories.
 
-```
-from .extract_data import extract_training, extract_test
-from .features import encode, normalize
-from .training import train_model, evaluate_model
+The actual Kubeflow Pipeline is defined on function decorated with `@hml.pipeline()`, where steps
+are comprised of calls to functions decorated with `@hml.op()`.
 
-@hm.pipeline()
-def my_pipeline():
-    op_extract_training = extract_training().op
-    op_extract_test = extract_test().op.after(op_extract_training)
+## pipeline.py
 
-    op_encode = encode().op.after(op_extract_test)
-    op_normalize = normalize().op.after(op_extract_test)
+This module defines our different pipeline operations, with functions decorated with `@hml.op()` representing
+Kubeflow Operations to be run within a Pipeline. Importantly, Kubeflow Operations are designed to be re-used
+and thus are only bound to a Pipeline at run time, via the function decorated with @hml.pipeline().
 
-    op_train_model = train_model().op.after(op_encode)
-    op_evaluate_model = evaluate_model().op.after(op_train_model)
+It is importand that the pipeline build a "ModelContainer" object, serialized as JSON which contains details about the newly trained model, including a reference to the joblib file defining the final model. This `ModelContainer` object will be loaded by the `InferencesApp`
 
+## shared.py
 
-```
+Both the Training and Inference phases of the project will share functionality, especially regarding key elements of pre-processing such as encoding & normalisation. Methods relating to shared functionality live in this file by way of example, but obviously may span multiple modules.
 
-`features.py`
+## inference.py
 
-```
-from .pipeline import my_pipeline
+Building on the HyperModel `InferenceApp`, `inference.py` defines how the application handles http requests to generate inferences. This involves an initial initialization phase, where the model referenced in the ModelContainer object is loaded from storage into memory ready to serve.
 
-@hm.op(pipeline=my_pipeline)
-def encode(context):
-    pass
-```
+# Command Line Interface
 
-This would then allow you to execute your entire pipeline locally with the following command:
+All Hyper Model applications can be run from the command line using intuitive commands:
+
+## Execute a Pipeline Step
 
 ```
-demo my-pipeline all
+<your_app> pipelines <your_pipeline_name> run <your_pipeline_step>
 ```
 
-Or you can execute a single step with:
+## Run all steps in a Pipeline
 
 ```
-demo my-pipeline features encode
+<your_app> pipelines <your_pipeline_name> run-all
 ```
 
-# Deployment of ML Pipelines to Kubeflow
+## Deploy your Pipeline to Kubeflow (Development)
 
 ```
+<your_app> pipelines <your_pipeline_name> deploy-dev
+```
 
+## Deploy your Pipeline to Kubeflow (Production)
+
+```
+<your_app> pipelines <your_pipeline_name> deploy-prod
+```
+
+## Serve Inference Requests (dev)
+
+Run using the Flask based development environment
+
+```
+<your_app> inference run-dev
+```
+
+## Serve Inference Requests (prod)
+
+Run using the Waitress based serving engine
+
+```
+<your_app> inference run-prod
 ```
 
 # Development setup
@@ -148,9 +157,11 @@ demo my-pipeline features encode
 ```
 conda create --name hml-dev python=3.7
 activate hml-dev
+conda install -n hml-dev mypy pandas joblib flask waitress click tqdm
+
+
 cd src\hyper-model\
 pip install -e ,
-
 pip install mypy
 
 ```

@@ -7,28 +7,19 @@ import pandas as pd
 from flask import jsonify, request
 
 from hypermodel.platform.gcp.services import GooglePlatformServices
-from hypermodel.hml.prediction.prediction_app import PredictionApp
-from hypermodel.hml.model_container import ModelContainer
+from hypermodel.hml import HmlInferencApp
+from hypermodel.hml import ModelContainer
 
 from crashed.model_config import crashed_model_container, services, build_feature_matrix
 
 
-@click.group()
-def api():
-    """ Hosting the API """
-    pass
-
-
-def build_app(model_container):
+def build_inference_app(model_container: ModelContainer, inference_app: HmlInferencApp):
 
     # Load the actual model (e.g. joblib / distributions etc)
     model_container.load()
 
-    # Create my flask app, and bind my model
-    app = PredictionApp()
-    app.load_model(model_container)
 
-    @app.flask.route("/predict")
+    @inference_app.flask.route("/predict")
     def predict():
         logging.info("api: /predict")
         # Lets not make the user specify every possible feature
@@ -62,25 +53,9 @@ def build_app(model_container):
         except Exception as ex:
             return jsonify({"success": False, "error": ex.args[0]})
 
-    return app
+    return inference_app
 
 
-@api.command()
-@click.pass_context
-def start_dev(ctx):
-    model_container: ModelContainer = ctx.obj["container"]
-    # Build the application
-    app = build_app(model_container)
-    app.start_dev()
-
-
-@api.command()
-@click.pass_context
-def start_prod(ctx):
-    model_container: ModelContainer = ctx.obj["container"]
-    # Build the application
-    app = build_app(model_container)
-    app.start_prod()
 
 
 # Lets just create a dict of default features so that we dont have to make
