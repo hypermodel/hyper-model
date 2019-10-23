@@ -102,7 +102,7 @@ demo-crashed-deploy:
     - pip install -e ./demo/car-crashes
 
     # Do the actual deployment to Kubeflow to make sure everything works as expected
-    - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $KFP_NAMESPACE
+    - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $K8S_NAMESPACE
 
 ###############################################################
 ###  RELEASE
@@ -111,9 +111,8 @@ push-dockerhub-app:
   stage: release
   dependencies:
     - build-image-hyper-model
-  when: manual
-  # only:
-  #   - release/*
+  only:
+    - release/*
   script:
     # Login to dockerhub
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
@@ -129,9 +128,8 @@ push-pip:
   stage: release
   dependencies:
     - build-image-hyper-model
-  when: manual
-  # only:
-  #   - release/*
+  only:
+    - release/*
   script:
     # Update HyperModel since we make lots of changes to it
     - pip install -e ./src/hyper-model
@@ -142,7 +140,6 @@ push-pip:
 #######################################
 image-hypermodel-base:
   stage: release
-  when: manual
   only:
     - release/*
   script:
@@ -152,9 +149,8 @@ image-hypermodel-base:
 
 image-hypermodel-cicd-gitlab:
   stage: release
-  when: manual
-  # only:
-  #   - release/*
+  only:
+    - release/*
   script:
     - echo "Building..."
     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION -f ./infra/docker/hypermodel-cicd-gitlab.Dockerfile ./infra/docker
