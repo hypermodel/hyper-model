@@ -2,11 +2,12 @@ import logging
 import json
 import click
 
+from typing import List, Dict, Callable, Optional
 from flask import Flask, send_file
 from waitress import serve
 
 from hypermodel.hml.prediction.routes.health import bind_health_routes
-
+from hypermodel.hml.model_container import ModelContainer
 
 class HmlInferenceApp:
     """
@@ -43,25 +44,33 @@ class HmlInferenceApp:
 
         self.config_callbacks = []
 
-    def register_model(self, model_container):
+    def register_model(self, model_container: ModelContainer) -> ModelContainer:
         """
-        Load the Model (its JobLib and Summary statistics) using an 
-        empy ModelContainer object, and bind it to our internal dictionary
-        of models.
+        Register the model with the Inference Application
 
         Args:
             model_container (ModelContainer): The container wrapping the model
 
         Returns:
-            The model container passed in, having been loaded.
+            The model container passed in, having been registered
 
         """
         self.models[model_container.name] = model_container
         return model_container
 
 
-    def on_init(self, func):
+    def on_init(self, func) -> Optional['HmlInferenceApp']:
+        """
+        Bind a function to be called when this application is initialized.
+
+        Args:
+            func (Callable): The function to execute on initialization
+
+        Returns 
+            A reference back to this HmlInferenceApp (self)
+        """
         self.config_callbacks.append(func)
+        return self
 
     def _initialise(self):
         

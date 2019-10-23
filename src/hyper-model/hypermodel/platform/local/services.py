@@ -14,7 +14,7 @@ from hypermodel.platform.gitlab.git_host import GitHostBase
 from hypermodel.platform.gitlab.git_host import GitLabHost
 from hypermodel.platform.abstract.services import PlatformServicesBase
 
-class LocalServices(PlatformServicesBase):
+class LocalPlatformServices(PlatformServicesBase):
 
     # @abstractproperty
     # def lake(self) -> DataLakeBase:

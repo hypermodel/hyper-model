@@ -73,6 +73,7 @@ build-image-hyper-model:
 #######################################
 demo-crashed-build:
   stage: test-demo-crashed
+  when: manual
   script:
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
     - docker build -t $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA -f ./demo/car-crashes/pipeline_op.Dockerfile .
@@ -80,6 +81,7 @@ demo-crashed-build:
 
 demo-crashed-deploy:
   stage: test-demo-crashed
+  when: manual
   script:
     # Make sure that we know where our docker image is at
     - export KF_DOCKER_IMAGE=$DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
