@@ -53,6 +53,7 @@ build-docs:
     # Make sure that we install our package first
     - pip install -e ./src/hyper-model
     # Make the documentation
+    - chmod +x update-docs.sh
     - ./update-docs.sh
 
 #######################################
