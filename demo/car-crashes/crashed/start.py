@@ -44,7 +44,7 @@ def main():
         )
 
     @hml.configure_op(app.pipelines)
-    def op_configurator(op):
+    def op_configurator(op: hml.HmlContainerOp):
         """
         Configure our Pipeline Operation Pods with the right secrets and 
         environment variables so that it can work with our cloud

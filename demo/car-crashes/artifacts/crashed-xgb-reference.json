@@ -1,0 +1,12 @@
+{
+  "model": {
+    "bucket": "grwdt-dev-lake",
+    "path": "models/demo-crashed/no-commit/local/crashed-xgb.joblib",
+    "md5": "912e77d8d8fd944bb16282ab887f8d80"
+  },
+  "distributions": {
+    "bucket": "grwdt-dev-lake",
+    "path": "models/demo-crashed/no-commit/local/crashed-xgb-distributions.json",
+    "md5": "f4504583d57bb925609685015ee91fc9"
+  }
+}
