@@ -3,12 +3,13 @@
   "python.linting.mypyEnabled": true,
   "python.linting.pylintEnabled": false,
   "python.linting.pylintUseMinimalCheckers": false,
-"python.linting.enabled": true,
-"python.linting.mypyPath": "C:\\Users\\Tez\\.mypyls\\Scripts\\mypy",
-"files.exclude": {
-  "**/._*": true,
-  "**/.mypy_cache": true,
-  "**/.vscode": true,
-  "**/node_modules/**": true
-}
+  "python.linting.enabled": true,
+  "python.linting.mypyPath": "C:\\Users\\Tez\\.mypyls\\Scripts\\mypy",
+  "files.exclude": {
+    "**/._*": true,
+    "**/.mypy_cache": true,
+    "**/.vscode": true,
+    "**/node_modules/**": true,
+    "**/__pycache__/**": true
+  }
 }

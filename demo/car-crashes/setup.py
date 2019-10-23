@@ -21,6 +21,8 @@ REQUIRES = [
     "kfp",
     "xgboost",
     "pandas",
+    "sklearn",
+    "xgboost",
     "google-cloud",
     "google-cloud-bigquery",
     "hypermodel",
@@ -50,5 +52,5 @@ setup(
     ],
     python_requires=">=3.5.3",
     include_package_data=True,
-    entry_points={"console_scripts": ["crashed = crashed.__main__:main"]},
+    entry_points={"console_scripts": ["crashed = crashed.start:main"]},
 )

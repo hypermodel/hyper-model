@@ -3,9 +3,10 @@ import logging
 import os
 from google.cloud import storage
 from hypermodel.platform.gcp.config import GooglePlatformConfig
+from hypermodel.platform.abstract.data_lake import DataLakeBase
 
 
-class DataLake():
+class DataLake(DataLakeBase):
     confg: GooglePlatformConfig
 
     def __init__(self, config: GooglePlatformConfig):

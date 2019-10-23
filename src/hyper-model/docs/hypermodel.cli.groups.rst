@@ -4,14 +4,6 @@ hypermodel.cli.groups package
 Submodules
 ----------
 
-hypermodel.cli.groups.deploy module
------------------------------------
-
-.. automodule:: hypermodel.cli.groups.deploy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 hypermodel.cli.groups.k8s module
 --------------------------------
 

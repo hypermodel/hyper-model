@@ -12,8 +12,10 @@ from google.cloud.bigquery.schema import SchemaField
 from hypermodel.platform.gcp.config import GooglePlatformConfig
 from hypermodel.model.table_schema import SqlTable, SqlColumn
 
+from hypermodel.platform.abstract.data_warehouse import DataWarehouseBase
 
-class DataWarehouse():
+
+class DataWarehouse(DataWarehouseBase):
     config: GooglePlatformConfig
 
     def __init__(self, config: GooglePlatformConfig):

@@ -7,8 +7,9 @@ Subpackages
 .. toctree::
 
    hypermodel.cli
+   hypermodel.features
+   hypermodel.hml
    hypermodel.kubeflow
-   hypermodel.ml
    hypermodel.model
    hypermodel.platform
    hypermodel.utilities

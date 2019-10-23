@@ -13,8 +13,9 @@ packages
 .vs
 *.sqlite
 *.csv
+*.db
 *.zip
-.vscode/**
+**/.vscode/**
 **/.cache/**
 **/.mypy_cache/**
 **/node_modules/**
@@ -28,3 +29,5 @@ packages
 artifacts/**
 artifacts/**
 **/docs/_build/**
+*.db
+*.dat
