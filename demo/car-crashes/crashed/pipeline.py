@@ -4,8 +4,8 @@ from typing import Dict, List
 from xgboost import XGBClassifier
 from hypermodel import hml
 from hypermodel.features import one_hot_encode
-from crashed.crashed_shared import BQ_TABLE_TRAINING, BQ_TABLE_TEST, MODEL_NAME
-from crashed.crashed_shared import build_feature_matrix
+from crashed.shared import BQ_TABLE_TRAINING, BQ_TABLE_TEST, MODEL_NAME
+from crashed.shared import build_feature_matrix
 
 
 @hml.op()
@@ -87,6 +87,7 @@ def train_model(ctx):
     # Publish this version of the model & data analysis
     ref = model_container.publish()
 
+    model_container.dump_reference(ref)
     # Create a merge request for this model to be deployed (don't do it here
     # because we don't want to polute the repository with merge requests relating
     # to test runs)

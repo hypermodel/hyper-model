@@ -48,7 +48,7 @@ class ModelContainer:
         self.filename_model = f"{self.name}.joblib"
         self.filename_reference = f"{self.name}-reference.json"
 
-        # Connectors for cloud platforms
+        self.is_loaded = False
 
     def analyze_distributions(self, data_frame: pd.DataFrame):
         logging.info(f"ModelContainer {self.name}: analyze_distributions")
@@ -146,7 +146,13 @@ class ModelContainer:
                 "md5": file_md5(local_path_dist),
             },
         }
+
         return reference
+
+    def dump_reference(self, reference):
+        file_path = self.get_local_path(self.filename_reference)
+        with open(file_path, "w") as f:
+            json.dump(reference, f, indent=2)
 
 
     def create_merge_request(self, reference, description="New models!"):

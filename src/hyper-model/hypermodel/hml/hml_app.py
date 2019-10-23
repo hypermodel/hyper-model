@@ -22,8 +22,12 @@ class HmlApp():
         self.inference = HmlInferenceApp(name, self.services, self.cli_root, config)
         self.models: Dict[str, ModelContainer] = dict()
 
-    def register_model(self, model_container: ModelContainer):
+    def register_model(self, name: str, model_container: ModelContainer):
         self.models[model_container.name] = model_container
+        self.inference.register_model(model_container)
+
+    def get_model(self, model_name:str):
+        return self.models[model_name]
 
     @click.group()
     @click.pass_context

@@ -22,6 +22,7 @@ class HmlInferenceApp:
             port (int): The port to listen in on (default: 8000)
         """
         self.models = dict()
+        self.name = name
         self.flask = Flask(__name__)
         self.port = 8000
         if "port" in config:
@@ -30,7 +31,7 @@ class HmlInferenceApp:
         # Bind my health related endpoints
         bind_health_routes(self.flask)
 
-        # Bidn my cli commands for inference
+        # Bind my cli commands for inference
         self.cli_root = cli
         self.cli_root.add_command(self.cli_inference_group)
 
@@ -40,7 +41,9 @@ class HmlInferenceApp:
         self.cli_start_prod = click.command()(self.start_prod)
         self.cli_inference_group.add_command(self.cli_start_prod)
 
-    def load_model(self, model_container):
+        self.config_callbacks = []
+
+    def register_model(self, model_container):
         """
         Load the Model (its JobLib and Summary statistics) using an 
         empy ModelContainer object, and bind it to our internal dictionary
@@ -55,6 +58,16 @@ class HmlInferenceApp:
         """
         self.models[model_container.name] = model_container
         return model_container
+
+
+    def on_init(self, func):
+        self.config_callbacks.append(func)
+
+    def _initialise(self):
+        
+        logging.info(f"HmlInferenceApp._initialize()")
+        for callback in self.config_callbacks:
+            callback(self)
 
     def get_model(self, name):
         """
@@ -79,20 +92,25 @@ class HmlInferenceApp:
     def cli_inference_group(context):
         pass
 
-    @click.pass_context
+    # @click.pass_context
     def start_dev(self):
         """
         Start the Flask App in development mode
         """
+        
+        self._initialise()
 
         logging.info(f"Development API Starting up on {self.port}")
         self.flask.run(host="127.0.0.1", port=self.port)
 
-    @click.pass_context
+    # @click.pass_context
     def start_prod(self):
         """
         Start the Flask App in Production mode (via Waitress)
         """
+        
+        self._initialise()
+
         logging.info("Production API Starting up on {self.port}")
 
         binding = f"*:{self.port}"
