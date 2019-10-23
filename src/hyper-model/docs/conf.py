@@ -20,7 +20,7 @@ sys.path.insert(0, '../')
 project = 'HyperModel'
 copyright = '2019, Growing Data Pty Ltd'
 author = 'Growing Data Pty Ltd'
-
+warning_is_error = 1
 # The short X.Y version
 version = '0.1.77'
 

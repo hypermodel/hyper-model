@@ -1,28 +1,21 @@
 hypermodel.kubeflow package
 ===========================
 
-Subpackages
------------
-
-.. toctree::
-
-   hypermodel.kubeflow.op
-
 Submodules
 ----------
+
+hypermodel.kubeflow.deploy module
+---------------------------------
+
+.. automodule:: hypermodel.kubeflow.deploy
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 hypermodel.kubeflow.deploy\_dev module
 --------------------------------------
 
 .. automodule:: hypermodel.kubeflow.deploy_dev
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-hypermodel.kubeflow.deploy\_prod module
----------------------------------------
-
-.. automodule:: hypermodel.kubeflow.deploy_prod
    :members:
    :undoc-members:
    :show-inheritance:

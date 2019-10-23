@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
    hypermodel.platform.gcp
+   hypermodel.platform.local
 
 Module contents
 ---------------
