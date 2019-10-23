@@ -95,6 +95,12 @@ demo-crashed-deploy:
     - echo "$KUBEFLOW_CI_SVCACC" > ./kubeflow_ci_svcacc.json
     - gcloud container clusters get-credentials $KFAPP --zone $GCP_ZONE --project $GCP_PROJECT
 
+    # Install HyperModel
+    - pip install -e ./src/hyper-model
+
+    # Install the demo app we are going to deploy
+    - pip install -e ./demo/car-crashes
+
     # Do the actual deployment to Kubeflow to make sure everything works as expected
     - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $KFP_NAMESPACE
 
