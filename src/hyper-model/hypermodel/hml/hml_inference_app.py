@@ -114,3 +114,7 @@ class HmlInferenceApp:
 
         binding = f"*:{self.port}"
         serve(self.flask, listen=binding)
+
+    def deploy(self, environment):
+        pass
+        
