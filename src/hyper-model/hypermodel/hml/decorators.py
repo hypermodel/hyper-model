@@ -77,6 +77,7 @@ def pipeline(pipeline_app: HmlPipelineApp, cron: str = None, experiment: str = N
 
     return _register
 
+
 def configure_op(pipeline_app: HmlPipelineApp):
     """
     @hml.configure_op is a decorator for the function that configures the ContainerOps prior 
@@ -96,13 +97,14 @@ def configure_op(pipeline_app: HmlPipelineApp):
 
     return _register
 
-def inference(inference_app:HmlInferenceApp):
+
+def inference(inference_app: HmlInferenceApp):
     """
     @hml.inference is a decorator for the function that initializes and defines routes for
     serving Inferences via API (using Flask).  The decorated function will be executed as a 
     part of the initialization phase of the application, when launced with 
     `<app> inference run-dev` or `<app> inference run-prod`
-    
+
     Args:
         inference_app (HmlInferenceApp): The `HmlInferenceApp` that this inference app belongs to
 
@@ -116,4 +118,3 @@ def inference(inference_app:HmlInferenceApp):
         inference_app.on_init(func)
 
     return _register
-

@@ -16,7 +16,8 @@ def cli_pipeline_group(context):
     # print(dir(context.command))
     # context["pipeline_app"] = self
     pass
-    
+
+
 class HmlPipelineApp:
     name: str
     config: Dict[str, str]
@@ -31,7 +32,6 @@ class HmlPipelineApp:
 
         self.pipelines: Dict[str, HmlPipeline] = dict()
         self.op_builders = []
-
 
     def __getitem__(self, key: str) -> HmlPipeline:
         """

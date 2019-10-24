@@ -4,7 +4,11 @@ from datetime import datetime
 from kfp import dsl
 from kfp import Client
 from kfp.compiler import Compiler
+<<<<<<< HEAD
 from typing import List, Dict, Callable, Optional
+=======
+from typing import List, Dict, Callable
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
 from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
 from hypermodel.kubeflow.kubeflow_client import KubeflowClient
 from hypermodel.kubeflow.deploy import deploy_pipeline
@@ -17,8 +21,13 @@ class HmlPipeline:
         self.pipeline_func = pipeline_func
         self.kubeflow_pipeline = dsl.pipeline(pipeline_func, pipeline_func.__name__)
 
+<<<<<<< HEAD
         self.cron [str] = None
         self.experiment [str] = None
+=======
+        self.cron = None
+        self.experiment = None
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
 
         # The methods we use to configure our Ops for running in Kubeflow
         self.op_builders = op_builders
@@ -36,8 +45,13 @@ class HmlPipeline:
         # Create a command to execute the whole pipeline
         self.cli_all = click.command(name="run-all")(self.run_all)
 
+<<<<<<< HEAD
         self.deploy_dev = self.apply_deploy_options(click.command(name="deploy-dev")(self._deploy_dev))
         self.deploy_prod = self.apply_deploy_options(click.command(name="deploy-prod")(self._deploy_prod))
+=======
+        self.deploy_dev = self.apply_deploy_options(click.command(name="deploy-dev")(self.deploy_dev))
+        self.deploy_prod = self.apply_deploy_options(click.command(name="deploy-prod")(self.deploy_prod))
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
 
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
@@ -53,6 +67,7 @@ class HmlPipeline:
             self.task_map[task_name] = t
 
     def apply_deploy_options(self, func):
+<<<<<<< HEAD
         """
         Bind additional command line arguments for the deployment step, including:
             --host: Endpoint of the KFP API service to use
@@ -66,10 +81,14 @@ class HmlPipeline:
             The current `HmlPipeline` (self)
         """
         func = click.option("-h", "--host", required=False, help="Endpoint of the KFP API service to use.")(func)
+=======
+        func = click.option("-h", "--host", required=False, help="Endpoint of the KFP API service to connect.")(func)
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
         func = click.option("-c", "--client-id", required=False, help="Client ID for IAP protected endpoint.")(func)
         func = click.option("-n", "--namespace", required=False, default="kubeflow", help="Kubernetes namespace to connect to the KFP API.")(func)
         return func
 
+<<<<<<< HEAD
     def with_cron(self, cron: str) -> Optional['HmlPipeline']:
         """
         Bind a `cron` expression to the Pipeline, telling Kubeflow to execute the Pipeline on 
@@ -107,12 +126,30 @@ class HmlPipeline:
         """
         Run all the steps in the pipeline
         """
+=======
+    def with_cron(self, cron):
+        self.cron = cron
+        return self
+
+    def with_experiment(self, experiment):
+        self.experiment = experiment
+        return self
+
+    def deploy_dev(self, host: str = None, client_id: str = None, namespace: str = None):
+        deploy_pipeline(self, "dev", host, client_id, namespace)
+
+    def deploy_prod(self, host: str = None, client_id: str = None, namespace: str = None):
+        deploy_pipeline(self, "prod", host, client_id, namespace)
+
+    def run_all(self, **kwargs):
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
         run_log = dict()
 
         for t in self.tasks:
             task_name = t["name"]
             self.run_task(task_name, run_log, kwargs)
 
+<<<<<<< HEAD
     def run_task(self, task_name: str, run_log: Dict[str, bool], kwargs):
         """
         Execute the Kubelow Operation for real, and mark the task as executed in the dict `run_log`
@@ -127,6 +164,9 @@ class HmlPipeline:
             None
         """
 
+=======
+    def run_task(self, task_name, run_log, kwargs):
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
         if task_name not in self.task_map:
             raise Exception(f"Unable to run task: {task_name}, not found in Workflow for pipeine: {self.name}")
 
@@ -151,12 +191,15 @@ class HmlPipeline:
         run_log[hml_op.k8s_name] = True
 
     def get_dag(self):
+<<<<<<< HEAD
         """
         Get the calculated Argo Workflow Directed Acyclic Graph created by the Kubeflow Pipeline.ArithmeticError
 
         Returns:
             The "dag" object from the Argo workflow template.
         """
+=======
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
         templates = self.workflow["spec"]["templates"]
         for t in templates:
             if "dag" in t:
@@ -183,7 +226,11 @@ class HmlPipeline:
 
     def _get_workflow(self):
         """
+<<<<<<< HEAD
         Calculate the Argo workflow from the execution of the Pipeline function
+=======
+        The Workflow dictates how the pipeline will be executed
+>>>>>>> 588f3b814ae18d245a84433d173a13a7a480f9b6
         """
 
         # Go and compile the workflow, which will mean executing our

@@ -13,7 +13,7 @@ from hypermodel.platform.local.services import LocalPlatformServices
 
 
 class HmlApp():
-    def __init__(self, name: str, platform:str, config:Dict[str,str]):
+    def __init__(self, name: str, platform: str, config: Dict[str, str]):
         """
         Initialize a new Hml App with the given name, platform ("local" or "GCP") and
         a dictionary of configuration values
@@ -42,14 +42,14 @@ class HmlApp():
             name (str): The name of the Model
             model_container (ModelContainer): The ModelContainer object containing the models
                 meta data
-        
+
         Returns:
             None
         """
         self.models[model_container.name] = model_container
         self.inference.register_model(model_container)
 
-    def get_model(self, model_name:str) -> ModelContainer:
+    def get_model(self, model_name: str) -> ModelContainer:
         """
         Get the registered model with the given model_name
 

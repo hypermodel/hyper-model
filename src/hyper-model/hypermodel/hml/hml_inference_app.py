@@ -2,12 +2,11 @@ import logging
 import json
 import click
 
-from typing import List, Dict, Callable, Optional
 from flask import Flask, send_file
 from waitress import serve
 
 from hypermodel.hml.prediction.routes.health import bind_health_routes
-from hypermodel.hml.model_container import ModelContainer
+
 
 class HmlInferenceApp:
     """
@@ -44,36 +43,27 @@ class HmlInferenceApp:
 
         self.config_callbacks = []
 
-    def register_model(self, model_container: ModelContainer) -> ModelContainer:
+    def register_model(self, model_container):
         """
-        Register the model with the Inference Application
+        Load the Model (its JobLib and Summary statistics) using an 
+        empy ModelContainer object, and bind it to our internal dictionary
+        of models.
 
         Args:
             model_container (ModelContainer): The container wrapping the model
 
         Returns:
-            The model container passed in, having been registered
+            The model container passed in, having been loaded.
 
         """
         self.models[model_container.name] = model_container
         return model_container
 
-
-    def on_init(self, func) -> Optional['HmlInferenceApp']:
-        """
-        Bind a function to be called when this application is initialized.
-
-        Args:
-            func (Callable): The function to execute on initialization
-
-        Returns 
-            A reference back to this HmlInferenceApp (self)
-        """
+    def on_init(self, func):
         self.config_callbacks.append(func)
-        return self
 
     def _initialise(self):
-        
+
         logging.info(f"HmlInferenceApp._initialize()")
         for callback in self.config_callbacks:
             callback(self)
@@ -106,7 +96,7 @@ class HmlInferenceApp:
         """
         Start the Flask App in development mode
         """
-        
+
         self._initialise()
 
         logging.info(f"Development API Starting up on {self.port}")
@@ -117,7 +107,7 @@ class HmlInferenceApp:
         """
         Start the Flask App in Production mode (via Waitress)
         """
-        
+
         self._initialise()
 
         logging.info("Production API Starting up on {self.port}")

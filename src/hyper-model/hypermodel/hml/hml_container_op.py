@@ -49,7 +49,7 @@ class HmlContainerOp(object):
 
         # Store a reference to the current pipeline
         self.pipeline = _current_pipeline
-        print (f"HmlContainerOp() {self.name} -> {_current_pipeline.name}")
+        print(f"HmlContainerOp() {self.name} -> {_current_pipeline.name}")
 
         self.op = dsl.ContainerOp(
             name=f"{self.name}",
@@ -70,7 +70,7 @@ class HmlContainerOp(object):
         """
         Actually invoke the function that this ContainerOp refers
         to (for testing / execution in the container)
-        
+
         Returns:
             A reference to the current `HmlContainerOp` (self)
         """
@@ -84,7 +84,7 @@ class HmlContainerOp(object):
             container_image_url (str): The url and tags for where we can find the container
             container_command (str): The command to execute
             container_args (List[str]): The arguments to pass the executable
-            
+
         Returns:
             A reference to the current `HmlContainerOp` (self)
         """
@@ -117,7 +117,7 @@ class HmlContainerOp(object):
         Args:
              secret_name (str): The name of the secret (in the same namespace)
              mount_path (str): The path to mount the secret locally
-             
+
         Returns:
             A reference to the current `HmlContainerOp` (self)
         """
@@ -147,7 +147,7 @@ class HmlContainerOp(object):
 
         Args:
             secret_name (str): The name of the secret with the Google Service Account json file.
-        
+
         Returns:
             A reference to the current `HmlContainerOp` (self)
         """
@@ -158,7 +158,7 @@ class HmlContainerOp(object):
     def with_env(self, variable_name, value):
         """
         Bind an environment variable with the name `variable_name` and `value` specified
-        
+
         Args:
             variable_name (str): The name of the environment variable
             value (str): The value to bind to the variable
@@ -178,7 +178,7 @@ class HmlContainerOp(object):
             name (str): The name of the volume to mount
             mount_path (str): The path to mount the empty volume
 
-        
+
         Returns:
             A reference to the current `HmlContainerOp` (self)
         """
