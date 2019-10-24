@@ -10,6 +10,19 @@ class GitLabHost(GitHostBase):
     def __init__(self, config):
         self._config = config
 
+        # Validate the gitlab config
+        if self._config.gitlab_token is None:
+            logging.error(f"No gitlab_token was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
+            raise Exception("No gitlab_token was provided")
+
+        if self._config.gitlab_project is None:
+            logging.error(f"No gitlab_project was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
+            raise Exception("No gitlab_project was provided")
+
+        if self._config.gitlab_url is None:
+            logging.error(f"No gitlab_url was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
+            raise Exception("No gitlab_url was provided")
+
     def create_merge_request(self,
                              reference: dict,
                              reference_path: str,
@@ -37,7 +50,6 @@ class GitLabHost(GitHostBase):
                 https://docs.gitlab.com/ee/api/merge_requests.html
 
         """
-
         # Write our model reference to JSON
         model_reference_json = json.dumps(reference)
 
