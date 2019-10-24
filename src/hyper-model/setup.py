@@ -30,6 +30,7 @@ REQUIRES = [
     # API Serving
     "flask",
     "waitress",
+    "sphinx_rtd_theme"
 ]
 
 setup(

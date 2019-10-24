@@ -33,10 +33,18 @@ def op():
 
 
 def pass_context(func):
+    """
+    `hml.pass_context` is a cheap wrapper of `click.pass_context` just so that all
+    the decorators can be prefixed with the same name
+    """
     return click.pass_context(func)
 
 
 def option(*args, **kwargs):
+    """
+    `hml.option` is a cheap wrapper of `click.option` just so that all
+    the decorators can be prefixed with the same name
+    """
     def _register(func):
         return click.option(*args, **kwargs)(func)
 
@@ -44,6 +52,20 @@ def option(*args, **kwargs):
 
 
 def pipeline(pipeline_app: HmlPipelineApp, cron: str = None, experiment: str = None):
+    """
+    @hml.pipeline is the decorator for a HyperModel Pipeline, which essentially wraps the
+    Kubeflow @dsl.pipeline decorator, but also registering the pipeline with the `HmlPipelineApp`
+    passed in, and registering the Pipelines Operations as Click CLI commands
+
+    Args:
+        pipeline_app (HmlPipelineApp): The `HmlPipelineApp` that this pipeline belongs to
+        cron (str): A cron expression for when this pipeline should execute
+        experitment (str): The Kubeflow Experiment that runs of this pipeline should be created 
+            in when this pipeline is deployed to production
+
+    Returns:
+        The decorated function
+    """
     def _register(func):
         pipe = pipeline_app.register_pipeline(func, cron=cron, experiment=experiment)
 
@@ -55,17 +77,44 @@ def pipeline(pipeline_app: HmlPipelineApp, cron: str = None, experiment: str = N
 
     return _register
 
+
 def configure_op(pipeline_app: HmlPipelineApp):
+    """
+    @hml.configure_op is a decorator for the function that configures the ContainerOps prior 
+    to their creation in Kubeflow.  This enables you to bind secrets, environment variables
+    and mount volumes
+
+    Args:
+        pipeline_app (HmlPipelineApp): The `HmlPipelineApp` that this pipeline belongs to
+
+    Returns:
+        The decorated function
+    """
+
     def _register(func):
         # Register this function as an initializer
         pipeline_app.configure_op(func)
 
     return _register
 
-def inference(inference_app:HmlInferenceApp):
+
+def inference(inference_app: HmlInferenceApp):
+    """
+    @hml.inference is a decorator for the function that initializes and defines routes for
+    serving Inferences via API (using Flask).  The decorated function will be executed as a 
+    part of the initialization phase of the application, when launced with 
+    `<app> inference run-dev` or `<app> inference run-prod`
+
+    Args:
+        inference_app (HmlInferenceApp): The `HmlInferenceApp` that this inference app belongs to
+
+    Returns:
+        The decorated function
+
+    """
+
     def _register(func):
         # Register this function as an initializer
         inference_app.on_init(func)
 
     return _register
-

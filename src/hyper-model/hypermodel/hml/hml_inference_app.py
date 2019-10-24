@@ -59,12 +59,11 @@ class HmlInferenceApp:
         self.models[model_container.name] = model_container
         return model_container
 
-
     def on_init(self, func):
         self.config_callbacks.append(func)
 
     def _initialise(self):
-        
+
         logging.info(f"HmlInferenceApp._initialize()")
         for callback in self.config_callbacks:
             callback(self)
@@ -97,7 +96,7 @@ class HmlInferenceApp:
         """
         Start the Flask App in development mode
         """
-        
+
         self._initialise()
 
         logging.info(f"Development API Starting up on {self.port}")
@@ -108,7 +107,7 @@ class HmlInferenceApp:
         """
         Start the Flask App in Production mode (via Waitress)
         """
-        
+
         self._initialise()
 
         logging.info("Production API Starting up on {self.port}")

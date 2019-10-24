@@ -14,7 +14,8 @@ from hypermodel.platform.gitlab.git_host import GitHostBase
 from hypermodel.platform.gitlab.git_host import GitLabHost
 from hypermodel.platform.abstract.services import PlatformServicesBase
 
-class LocalServices(PlatformServicesBase):
+
+class LocalPlatformServices(PlatformServicesBase):
 
     # @abstractproperty
     # def lake(self) -> DataLakeBase:
@@ -37,7 +38,7 @@ class LocalServices(PlatformServicesBase):
     def __init__(self):
         self._config: LocalConfig = LocalConfig()
         self._lake: LocalDataLake = LocalDataLake(self.config)
-        self._warehouse: SqliteDataWarehouse =SqliteDataWarehouse(self.config)
+        self._warehouse: SqliteDataWarehouse = SqliteDataWarehouse(self.config)
         self._git: GitLabHost = GitLabHost(self.config)
 
     @property

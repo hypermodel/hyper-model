@@ -4,14 +4,6 @@ hypermodel.model package
 Submodules
 ----------
 
-hypermodel.model.table\_column module
--------------------------------------
-
-.. automodule:: hypermodel.model.table_column
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 hypermodel.model.table\_schema module
 -------------------------------------
 
