@@ -69,7 +69,7 @@ class GitLabHost(GitHostBase):
 
         # Get my file
         f = project.files.get(file_path=reference_path, ref=new_branch)
-        logging.info(f"create_merge_request: Got a reference to: {original_file_path} in {new_branch}")
+        logging.info(f"create_merge_request: Got a reference to: {reference_path} in {new_branch}")
 
         f.content = model_reference_json
 

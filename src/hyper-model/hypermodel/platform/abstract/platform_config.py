@@ -12,4 +12,4 @@ class PlatformConfig:
     def get_env(self, key: str, default=None) -> str:
         value = os.environ[key] if key in os.environ else default
         self.data[key] = value
-        return value    
+        return value 
