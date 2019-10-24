@@ -24,13 +24,13 @@ app.pipelines.configure_op(op_configurator)
 @hml.op()
 @hml.option('-f', '--firstname', required=True, help='The users first name')
 def step_a(ctx, firstname):
-    print(f"Hello {firstname}")
+    #print(f"Hello {firstname}")
 
 
 @hml.op()
 @hml.option('-f', '--firstname', required=True, help='The users first name')
 def step_b(ctx, firstname):
-    print(f"goodbye {firstname}")
+    #print(f"goodbye {firstname}")
 
 
 @hml.pipeline(app=app)

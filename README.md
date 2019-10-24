@@ -14,18 +14,25 @@ API / SDK documentation for Hyper Model is available at https://docs.hypermodel.
 
 ## 2. Create a conda environment
 
-```
-conda create --name hypermodel python=3.7
-conda activate hypermodel
+```sh
+conda create --name hml-dev python=3.7
+conda install -n hml-dev mypy pandas joblib flask waitress click tqdm kfp
+conda activate hml-dev
+
+
+cd src/hyper-model/
+pip install -e .
+
 ```
 
 ## 3. Install the HyperModel pip package for local development
 
-```
+```sh
 cd src/hyper-model/
 python -m pip install --upgrade setuptools wheel
 python setup.py sdist bdist_wheel
 pip install -e .
+
 ```
 
 # Example Pipeline
@@ -323,7 +330,6 @@ conda install -n hml-dev mypy pandas joblib flask waitress click tqdm
 
 cd src/hyper-model/
 pip install -e ,
-pip install mypy
 
 ```
 

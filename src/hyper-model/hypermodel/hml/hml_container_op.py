@@ -16,7 +16,7 @@ def _pipeline_enter(pipeline):
     global _current_pipeline
     global _old_pipeline
 
-    print(f"_pipeline_enter: {_current_pipeline} = {pipeline}")
+    # #print(f"_pipeline_enter: {_current_pipeline} = {pipeline}")
     _old_pipeline = _current_pipeline
     _current_pipeline = pipeline
 
@@ -49,7 +49,6 @@ class HmlContainerOp(object):
 
         # Store a reference to the current pipeline
         self.pipeline = _current_pipeline
-        print(f"HmlContainerOp() {self.name} -> {_current_pipeline.name}")
 
         self.op = dsl.ContainerOp(
             name=f"{self.name}",

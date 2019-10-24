@@ -12,9 +12,6 @@ from hypermodel.hml.hml_container_op import HmlContainerOp
 @click.group(name="pipelines")
 @click.pass_context
 def cli_pipeline_group(context):
-    # print(f"HmlPipelineApp.cli_pipeline_group: {context}")
-    # print(dir(context.command))
-    # context["pipeline_app"] = self
     pass
 
 

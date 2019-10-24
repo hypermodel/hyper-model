@@ -88,5 +88,5 @@ class HmlApp():
             "services": self.services,
             "models": self.models
         }
-        print(f"HmlApp.start()")
+        # print(f"HmlApp.start()")
         self.cli_root(obj=context, auto_envvar_prefix="HML")
