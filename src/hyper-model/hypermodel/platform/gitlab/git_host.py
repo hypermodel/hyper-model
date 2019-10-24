@@ -4,10 +4,11 @@ import json
 import datetime
 from typing import List
 from hypermodel.platform.abstract.git_host import GitHostBase
+from hypermodel.platform.gcp.config import GooglePlatformConfig
 
 
 class GitLabHost(GitHostBase):
-    def __init__(self, config):
+    def __init__(self, config: GooglePlatformConfig):
         self._config = config
 
         # Validate the gitlab config

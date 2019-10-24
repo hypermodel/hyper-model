@@ -39,9 +39,9 @@ class GooglePlatformConfig(PlatformConfig):
 
         self.is_local_dev = self.ci_commit == "no-commit"
 
-        self.gitlab_token = self.get_env("GITLAB_TOKEN", "no-token")
-        self.gitlab_project = self.get_env("GITLAB_PROJECT", "no-project")
-        self.gitlab_url = self.get_env("GITLAB_URL", "https://gitlab.com")
+        self.gitlab_token = self.get_env("GITLAB_TOKEN", None)
+        self.gitlab_project = self.get_env("GITLAB_PROJECT", None)
+        self.gitlab_url = self.get_env("GITLAB_URL", None)
 
         self.temp_path = self.get_env("TEMP_PATH", "/tmp")
 
