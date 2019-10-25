@@ -10,7 +10,6 @@ hypermodel.egg-info/top_level.txt
 hypermodel/cli/__init__.py
 hypermodel/cli/cli_start.py
 hypermodel/cli/groups/__init__.py
-hypermodel/cli/groups/deploy.py
 hypermodel/cli/groups/k8s.py
 hypermodel/cli/groups/lake.py
 hypermodel/cli/groups/warehouse.py
@@ -31,7 +30,6 @@ hypermodel/kubeflow/deploy.py
 hypermodel/kubeflow/deploy_dev.py
 hypermodel/kubeflow/kubeflow_client.py
 hypermodel/model/__init__.py
-hypermodel/model/table_column.py
 hypermodel/model/table_schema.py
 hypermodel/platform/__init__.py
 hypermodel/platform/gcp/__init__.py
@@ -40,8 +38,11 @@ hypermodel/platform/gcp/data_lake.py
 hypermodel/platform/gcp/data_warehouse.py
 hypermodel/platform/gcp/gcp_base_op.py
 hypermodel/platform/gcp/services.py
-hypermodel/tests/__init__.py
-hypermodel/tests/decorator_test.py
+hypermodel/platform/local/__init__.py
+hypermodel/platform/local/config.py
+hypermodel/platform/local/data_lake.py
+hypermodel/platform/local/data_warehouse.py
+hypermodel/platform/local/services.py
 hypermodel/tests/simple_pipeline.py
 hypermodel/utilities/__init__.py
 hypermodel/utilities/file_hash.py

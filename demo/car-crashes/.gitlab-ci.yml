@@ -1,0 +1,109 @@
+# image: growingdata/hypermodel:gitlab-ci-1.3.60
+image: growingdata/hypermodel:gitlab-ci-py-1.0.2
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://localhost:2375
+  CLUSTER_ZONE: australia-southeast1-a
+  GIT_DEPTH: "3"
+
+stages:
+  - build
+  - test
+  - deploy
+
+before_script:
+  - export GCP_PROJECT="grwdt-dev"
+  - export GCP_ZONE="australia-southeast1-a"
+  - export KFAPP="kf-crashed"
+
+  - export WAREHOUSE_DATASET=crashed
+  - export WAREHOUSE_LOCATION=australia-southeast1
+  - export LAKE_BUCKET=grwdt-dev-lake
+  - export LAKE_PATH=crashed
+
+  - export K8S_NAMESPACE=kubeflow
+  - export K8S_CLUSTER="kf-crashed"
+
+  - export GOOGLE_APPLICATION_CREDENTIALS=./kubeflow_ci_svcacc.json
+
+  - echo "$KUBEFLOW_CI_SVCACC" > ./kubeflow_ci_svcacc.json
+
+  - export DOCKERHUB_IMAGE="growingdata/demo-crashed"
+
+#######################################
+####  BUILD
+#######################################
+build-app-image:
+  stage: build
+  script:
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+    - echo "Building..."
+    - docker build -t $DOCKERHUB_IMAGE:$CI_COMMIT_SHA -f ./deploy/crashed.Dockerfile .
+    - docker push $DOCKERHUB_IMAGE:$CI_COMMIT_SHA
+
+#######################################
+####  TEST
+#######################################
+test-static-analysis:
+  stage: test
+  dependencies:
+    - build-app-image
+  script:
+    - echo "Static Analysis PASSED"
+
+test-python-unit-tests:
+  stage: test
+  dependencies:
+    - build-app-image
+  script:
+    - echo "Python unit tests PASSED"
+
+test-python-integration-tests:
+  stage: test
+  dependencies:
+    - build-app-image
+  script:
+    - echo "Python inegrations tests PASSED"
+
+#######################################
+####  DEPLOY
+#######################################
+deploy-pipeline:
+  stage: deploy
+  only:
+    - master
+  dependencies:
+    - build-app-image
+  script:
+    - gcloud config set project $GCP_PROJECT
+    - gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS
+    - gcloud container clusters get-credentials $KFAPP --zone $GCP_ZONE --project $GCP_PROJECT
+
+    # Install an updated version of HyperModel
+    - git clone https://github.com/GrowingData/hyper-model.git
+    - cd hyper-model
+    - git checkout story/hp-009-rel-0.1.77
+    - pip install -e src/hyper-model
+    - cd ..
+    # Install this package
+    - pip install -e src/
+
+    # Deploy the pipeline using the newly deployed source
+    - crashed pipelines crashed_pipeline deploy-prod --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $K8S_NAMESPACE
+
+deploy-model:
+  stage: deploy
+  dependencies:
+    - build-app-image
+  only:
+    changes:
+      - crashed-xgb-reference.json
+    refs:
+      - master
+  script:
+    # Use a simpl bash script to re-write a yml template to push the
+    # docker container which will serve API requests for our model
+    - /bin/bash ./deploy_model.sh

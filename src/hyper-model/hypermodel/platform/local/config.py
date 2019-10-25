@@ -3,16 +3,15 @@ import typing
 from typing import List, Set, Dict, Tuple, Optional
 from hypermodel.platform.abstract.platform_config import PlatformConfig
 
+
 class LocalConfig(PlatformConfig):
     data_lake_path: str
-
 
     def __init__(self):
         PlatformConfig.__init__(self)
 
         self.data_lake_path = self.get_env("HM_LAKE_PATH")
         self.sqlite_db_path = self.get_env("HM_SQLITE_WAREHOUSE_DBPATH")
-
 
         self.lake_bucket = self.get_env("LAKE_BUCKET")
         self.lake_path = self.get_env("LAKE_PATH")
@@ -29,6 +28,9 @@ class LocalConfig(PlatformConfig):
 
         self.is_local_dev = self.ci_commit == "no-commit"
 
+        self.gitlab_token = self.get_env("GITLAB_TOKEN", None)
+        self.gitlab_project = self.get_env("GITLAB_PROJECT", None)
+        self.gitlab_url = self.get_env("GITLAB_URL", None)
 
         self.temp_path = self.get_env("TEMP_PATH", "/tmp")
 

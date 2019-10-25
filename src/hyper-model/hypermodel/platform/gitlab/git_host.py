@@ -4,11 +4,25 @@ import json
 import datetime
 from typing import List
 from hypermodel.platform.abstract.git_host import GitHostBase
+from hypermodel.platform.gcp.config import GooglePlatformConfig
 
 
 class GitLabHost(GitHostBase):
-    def __init__(self, config):
+    def __init__(self, config: GooglePlatformConfig):
         self._config = config
+
+        # Validate the gitlab config
+        if self._config.gitlab_token is None:
+            logging.warning(f"No gitlab_token was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
+            # raise Exception("No gitlab_token was provided")
+
+        if self._config.gitlab_project is None:
+            logging.warning(f"No gitlab_project was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
+            # raise Exception("No gitlab_project was provided")
+
+        if self._config.gitlab_url is None:
+            logging.warning(f"No gitlab_url was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
+            # raise Exception("No gitlab_url was provided")
 
     def create_merge_request(self,
                              reference: dict,
@@ -37,7 +51,6 @@ class GitLabHost(GitHostBase):
                 https://docs.gitlab.com/ee/api/merge_requests.html
 
         """
-
         # Write our model reference to JSON
         model_reference_json = json.dumps(reference)
 
@@ -56,7 +69,7 @@ class GitLabHost(GitHostBase):
 
         # Get my file
         f = project.files.get(file_path=reference_path, ref=new_branch)
-        logging.info(f"create_merge_request: Got a reference to: {original_file_path} in {new_branch}")
+        logging.info(f"create_merge_request: Got a reference to: {reference_path} in {new_branch}")
 
         f.content = model_reference_json
 

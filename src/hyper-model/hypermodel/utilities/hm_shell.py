@@ -1,4 +1,5 @@
 from typing import Dict, Tuple
+import logging
 import subprocess
 import os
 
@@ -13,7 +14,7 @@ def sh(
         env = os.environ
 
     try:
-        print(f"> {cmd} (in {cwd})")
+        #print(f"> {cmd} (in {cwd})")
 
         channel = subprocess.Popen(
             [cmd],
@@ -32,14 +33,14 @@ def sh(
 
         if not ignore_error:
             if debug == True or channel.returncode != 0:
-                print(f"    return_code: {channel.returncode}")
-                print(f"    out: {stdout}")
-                print(f"    err: {stderr}")
+                logging.error(f"    return_code: {channel.returncode}")
+                logging.error(f"    out: {stdout}")
+                logging.error(f"    err: {stderr}")
 
     except Exception as e:
         if not ignore_error:
             error_message = str(e)
-            print(f"> {cmd} Failed: {error_message}")
+            #print(f"> {cmd} Failed: {error_message}")
             return (False, error_message, error_message)
 
     return (channel.returncode, stdout, stderr)

@@ -7,7 +7,7 @@ def tick():
     with open("version.txt", "r") as f:
         version_str = f.readline()
 
-    print(f"Old version is: {version_str}")
+    #print(f"Old version is: {version_str}")
 
     version = [int(x) for x in version_str.split(".")]
     version[2] += 1
@@ -16,7 +16,7 @@ def tick():
     with open("version.txt", "w") as f:
         f.write(version_str)
 
-    print(f"New version is: {version}")
+    #print(f"New version is: {version}")
     return version_str
 
 
@@ -24,7 +24,7 @@ def tick_python(path, version):
     file_path = f"{path}/setup.py"
     with open(file_path, "r") as f:
 
-        print(f"tick_python: {path} ({version})")
+        #print(f"tick_python: {path} ({version})")
         lines = [line for line in f]
         for i in range(0, len(lines)):
             line = lines[i]
@@ -43,7 +43,7 @@ def tick_dotnet(path, version):
 
     with open(csproj_path, "r") as f:
 
-        print(f"tick_dotnet: {path} ({version})")
+        #print(f"tick_dotnet: {path} ({version})")
         lines = [line for line in f]
         for i in range(0, len(lines)):
             line = lines[i]

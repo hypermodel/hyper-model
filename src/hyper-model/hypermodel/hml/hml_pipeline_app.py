@@ -12,26 +12,24 @@ from hypermodel.hml.hml_container_op import HmlContainerOp
 @click.group(name="pipelines")
 @click.pass_context
 def cli_pipeline_group(context):
-    # print(f"HmlPipelineApp.cli_pipeline_group: {context}")
-    # print(dir(context.command))
-    # context["pipeline_app"] = self
     pass
 
 
 class HmlPipelineApp:
-    name: str
-    config: Dict[str, str]
-    op_builders: List[Callable[[HmlContainerOp], HmlContainerOp]] = []
-
-    def __init__(self, name, services, cli, config):
+    def __init__(self,
+                 name: str,
+                 cli: click.Group,
+                 image_url: str,
+                 package_entrypoint: str):
         self.name = name
-        self.services = services
-        self.config = config
         self.cli_root = cli
         self.cli_root.add_command(cli_pipeline_group)
 
+        self.image_url = image_url
+        self.package_entrypoint = package_entrypoint
+
         self.pipelines: Dict[str, HmlPipeline] = dict()
-        self.op_builders = []
+        self.deploy_callbacks: List[Callable[[HmlContainerOp], HmlContainerOp]] = []
 
     def __getitem__(self, key: str) -> HmlPipeline:
         """
@@ -52,7 +50,7 @@ class HmlPipelineApp:
         Returns:
             Nonw
         """
-        pipe = HmlPipeline(self.config, cli_pipeline_group, pipeline_func, self.op_builders)
+        pipe = HmlPipeline(cli_pipeline_group, pipeline_func, self.image_url, self.package_entrypoint, self.deploy_callbacks)
         pipe.with_cron(cron)
         pipe.with_experiment(experiment)
 
@@ -60,7 +58,7 @@ class HmlPipelineApp:
 
         return pipe
 
-    def configure_op(self, func: Callable[[HmlContainerOp], HmlContainerOp]):
+    def on_deploy(self, func: Callable[[HmlContainerOp], HmlContainerOp]):
         """
         Registers a function to be called for each ContainerOp defined in the Pipeline 
         to enable us to configure the Operations within the container with secrets,
@@ -71,5 +69,5 @@ class HmlPipelineApp:
                 which configure the supplied HmlContainerOp
         """
 
-        self.op_builders.append(func)
+        self.deploy_callbacks.append(func)
         return self

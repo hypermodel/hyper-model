@@ -28,11 +28,11 @@ def deploy_to_dev(pipeline):
     experiment_name = f"{pipeline_name}_tests"
     run_name = pipeline_name + ' ' + datetime.now().strftime('%Y-%m-%d %H-%M-%S')
 
-    print(f"hm> pipeline: {pipeline_name}")
-    print(f"hm> experiment: {experiment_name}")
-    print(f"hm> run: {run_name}")
+    #print(f"hm> pipeline: {pipeline_name}")
+    #print(f"hm> experiment: {experiment_name}")
+    #print(f"hm> run: {run_name}")
     client = Client(None, None)
     client.create_run_from_pipeline_func(pipeline, deploy_args, run_name=run_name, experiment_name=experiment_name)
 
-    print(f"hm> Deployed and running!")
+    #print(f"hm> Deployed and running!")
     return True

@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Dict, List, Optional, Callable
 from kfp import Client
 from kfp.compiler import compiler
 from datetime import datetime
@@ -13,7 +14,7 @@ class KubeflowClient():
     be able to access more of the Kubeflow Pipelines API.
     """
 
-    def __init__(self, host:str=None, client_id:str=None, namespace:str='kubeflow'):
+    def __init__(self, host: Optional[str]=None, client_id: Optional[str]=None, namespace: Optional[str]='kubeflow'):
         """
         Instandiate a new KubeflowClient
 
@@ -29,11 +30,11 @@ class KubeflowClient():
 
         self.config = self.kfp_client._load_config(self.host, self.client_id, self.namespace)
 
-        print(f"kfp auth:")
-        print(f"\thost: {self.host}")
-        print(f"\tclient_id: {self.client_id}")
-        print(f"\tnamespace: {self.namespace}")
-        print(f"\tapi_key: {self.config.api_key}")
+        #print(f"kfp auth:")
+        #print(f"\thost: {self.host}")
+        #print(f"\tclient_id: {self.client_id}")
+        #print(f"\tnamespace: {self.namespace}")
+        #print(f"\tapi_key: {self.config.api_key}")
         self.kfp_pipelines = self._connect_pipelines_api()
         self.kfp_runs = self._connect_runs_api()
         self.kfp_jobs = self._connect_jobs_api()
@@ -55,7 +56,6 @@ class KubeflowClient():
             return self.kfp_client.upload_pipeline(pipeline_package_path, pipeline_name)
         finally:
             os.remove(pipeline_package_path)
-
 
     def create_experiment(self, experiment_name):
         """
@@ -87,11 +87,11 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         count = len(all_experiments)
-        print(f"list_experiments: found {count}")
+        #print(f"list_experiments: found {count}")
 
         return all_experiments
 
-    def find_job(self, job_name):        
+    def find_job(self, job_name):
         """
         Look up a job by its name (in the current namespace).  Returns
         None if the job cannot be found
@@ -104,7 +104,7 @@ class KubeflowClient():
         """
         jobs = self.list_jobs()
         if jobs is None:
-            return None 
+            return None
 
         for j in jobs:
             if j.name == job_name:
@@ -129,7 +129,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         count = len(all_jobs)
-        print(f"all_jobs: found {count}")
+        #print(f"all_jobs: found {count}")
 
         return all_jobs
 
@@ -146,7 +146,7 @@ class KubeflowClient():
         self.kfp_jobs.delete_job(id=job.id)
         return True
 
-    def create_job(self, name:str, pipeline, experiment,
+    def create_job(self, name: str, pipeline, experiment,
                    description=None, enabled=True, max_concurrency=1, cron=None):
         """
         Create a new Kubeflow Pipelines Job
@@ -188,7 +188,6 @@ class KubeflowClient():
         response = self.kfp_jobs.create_job(body=run_body)
         return response
 
-
     def list_runs(self, experiment_name):
         """
         List the `Runs` in the specified Exper`iment
@@ -210,7 +209,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         run_count = len(all_runs)
-        print(f"list_runs: found {run_count}")
+        #print(f"list_runs: found {run_count}")
         return all_runs
 
     def list_pipelines(self):
@@ -231,7 +230,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         pipeline_count = len(all_pipelines)
-        print(f"list_pipelines: found {pipeline_count}")
+        #print(f"list_pipelines: found {pipeline_count}")
         return all_pipelines
 
     def find_experiment(self, id=None, name=None):
@@ -287,15 +286,13 @@ class KubeflowClient():
 
         Args:
             pipeline: The pipeline object to delete
-        
+
         Returns:
             True if successfull
         """
         # Go through all my pipelines to find the one to delete
         self.kfp_pipelines.delete_pipeline(pipeline.id)
         return True
-
-
 
     def _connect_pipelines_api(self):
         """

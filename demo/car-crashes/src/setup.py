@@ -15,7 +15,7 @@
 from setuptools import setup, find_packages
 
 NAME = "crashed"
-VERSION = "0.0.73"
+VERSION = "0.0.74"
 REQUIRES = [
     "click",
     "kfp",

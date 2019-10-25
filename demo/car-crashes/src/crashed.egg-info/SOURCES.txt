@@ -1,8 +1,9 @@
 README.md
 setup.py
 crashed/__init__.py
-crashed/crashed_pipeline.py
-crashed/crashed_shared.py
+crashed/inference.py
+crashed/pipeline.py
+crashed/shared.py
 crashed/start.py
 crashed.egg-info/PKG-INFO
 crashed.egg-info/SOURCES.txt

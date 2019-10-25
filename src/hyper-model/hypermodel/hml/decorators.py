@@ -78,9 +78,9 @@ def pipeline(pipeline_app: HmlPipelineApp, cron: str = None, experiment: str = N
     return _register
 
 
-def configure_op(pipeline_app: HmlPipelineApp):
+def deploy_op(pipeline_app: HmlPipelineApp):
     """
-    @hml.configure_op is a decorator for the function that configures the ContainerOps prior 
+    @hml.deploy_pipeline_op is a decorator for the function that configures the ContainerOps prior 
     to their creation in Kubeflow.  This enables you to bind secrets, environment variables
     and mount volumes
 
@@ -93,7 +93,7 @@ def configure_op(pipeline_app: HmlPipelineApp):
 
     def _register(func):
         # Register this function as an initializer
-        pipeline_app.configure_op(func)
+        pipeline_app.on_deploy(func)
 
     return _register
 
@@ -116,5 +116,24 @@ def inference(inference_app: HmlInferenceApp):
     def _register(func):
         # Register this function as an initializer
         inference_app.on_init(func)
+
+    return _register
+
+
+def deploy_inference(inference_app: HmlInferenceApp):
+    """
+    @hml.deploy_inference is a decorator for the function that configures the Kubernetes 
+    deployment of the Inference App prior to deployment This enables you to bind secrets, 
+    environment variables, mount volumes, create sidecars, etc
+
+    Args:
+        inference_app (HmlInferenceApp): The `HmlPipelineApp` that this pipeline belongs to
+
+    Returns:
+        The decorated function
+    """
+    def _register(func):
+        # Register this function as an initializer
+        inference_app.on_deploy(func)
 
     return _register
