@@ -12,11 +12,7 @@ def main():
 
     # Create a reference to our "App" object which maintains state
     # about both the Inference and Pipeline phases of the model
-    image_url = "growingdata/demo-crashed:e7bd2d87182ea1ba72f961f36f1018b65ae2944c"
-
-    if "DOCKERHUB_IMAGE" in os.environ:
-        # I am running in CI/CD
-        image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
+    image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
 
     app = hml.HmlApp(
         name="car-crashes",

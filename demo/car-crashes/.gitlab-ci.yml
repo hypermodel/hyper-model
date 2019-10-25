@@ -85,7 +85,6 @@ deploy-pipeline:
     # Install an updated version of HyperModel
     - git clone https://github.com/GrowingData/hyper-model.git
     - cd hyper-model
-    - git checkout story/hp-009-rel-0.1.77
     - pip install -e src/hyper-model
     - cd ..
     # Install this package
@@ -104,6 +103,17 @@ deploy-model:
     refs:
       - master
   script:
-    # Use a simpl bash script to re-write a yml template to push the
-    # docker container which will serve API requests for our model
-    - /bin/bash ./deploy_model.sh
+    - gcloud config set project $GCP_PROJECT
+    - gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS
+    - gcloud container clusters get-credentials $KFAPP --zone $GCP_ZONE --project $GCP_PROJECT
+
+    # Install an updated version of HyperModel
+    - git clone https://github.com/GrowingData/hyper-model.git
+    - cd hyper-model
+    - pip install -e src/hyper-model
+    - cd ..
+    # Install this package
+    - pip install -e src/
+
+    # Deploy it using our new package
+    - crashed inference deploy

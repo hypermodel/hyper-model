@@ -15,7 +15,7 @@
 from setuptools import setup, find_packages
 
 NAME = "hypermodel"
-VERSION = '0.1.77'
+VERSION = '0.1.78'
 REQUIRES = [
     "click",
     "kfp",

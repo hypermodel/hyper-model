@@ -9,6 +9,13 @@ from kfp.dsl._container_op import Container
 
 
 class HmlInferenceDeployment:
+    """
+    The `HmlInferenceDeployment` class provides functionality for managing deployments of the
+    `HmlInferenceApp` to Kubernetes.  This provides the ability to build and configure the
+    required Kubernetes Deployments (Pods & Containers) along with a NodePort Service suitable
+    for use with an Ingress (not created by this).
+    """
+
     def __init__(self,
                  name: str,
                  image_url: str,
@@ -28,6 +35,9 @@ class HmlInferenceDeployment:
         self.deployment_name = self.k8s_deployment.metadata.name
 
     def get_yaml(self):
+        """
+        Get the YAML like definition of the K8s Deployment and Service
+        """
         deployment_yml = self.k8s_deployment.to_str()
         service_yml = self.k8s_service.to_str()
         # deployment_yml = yaml.safe_dump(self.k8s_deployment)
@@ -35,7 +45,12 @@ class HmlInferenceDeployment:
         return deployment_yml + "\n----------\n\n" + service_yml
 
     def _build_service(self) -> V1Service:
+        """
+        Build the Kubernetes NodePort service for this HmlInferenceApp
 
+        Returns:
+            `V1Service`
+        """
         service_spec = client.V1ServiceSpec(
             type="NodePort",
             selector={"app": f"{self.name}-app"},
@@ -56,6 +71,14 @@ class HmlInferenceDeployment:
         return service
 
     def _build_container(self, image: str, entrypoint: str) -> Container:
+        """
+        Build the primary Container for this HmlInferenceApp, using the Kubeflow 
+        Container wrapper so that we can utilise its helper methods
+
+        Returns:
+            kfp.dsl._container_op.Container
+        """
+
         # Define our probes for when the container is ready for action
         probe_action = client.V1HTTPGetAction(path="/healthz", port=self.port)
         probe = client.V1Probe(http_get=probe_action, initial_delay_seconds=60, period_seconds=60)
@@ -76,6 +99,12 @@ class HmlInferenceDeployment:
         return container
 
     def _build_deployment(self, container: Container) -> ExtensionsV1beta1Deployment:
+        """
+        Build the InferenceApp deployment
+
+        Returns:
+            `ExtensionsV1beta1Deployment`
+        """
         # Create and configurate a spec section
         template = client.V1PodTemplateSpec(
             metadata=client.V1ObjectMeta(
@@ -183,6 +212,19 @@ class HmlInferenceDeployment:
         return self
 
     def with_resources(self, limit_cpu: str, limit_memory: str, request_cpu: str, request_memory: str) -> Optional['HmlInferenceDeployment']:
+        """
+        Set the Resource Limits and Requests for the Container running the `HmlInferenceApp`
+
+        Args:
+            limit_cpu (str): Maximum amount of CPU to use
+            limit_memory (str): Maximum amount of Memory to use
+            request_cpu (str): The desired amount of CPU to reserve
+            request_memory (str): The desired amount of Memory to reserve
+
+        Returns:
+            A reference to the current `HmlInferenceDeployment` (self)
+        """
+
         self.k8s_container.resources = client.V1ResourceRequirements(
             limits={"cpu": limit_cpu, "memory": limit_memory},
             requests={"cpu": request_cpu, "memory": request_memory}

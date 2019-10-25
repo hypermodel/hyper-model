@@ -29,7 +29,7 @@ ADD ./src /pkg_src/demo-car-crashes
 WORKDIR /github
 RUN git clone https://github.com/GrowingData/hyper-model.git
 WORKDIR /github/hyper-model
-RUN git checkout story/hp-009-rel-0.1.77
+RUN git checkout story/hp-009-rel-0.1.78
 RUN cp -r src/hyper-model /pkg_src
 
 # Install the current source code version of HyperModel
