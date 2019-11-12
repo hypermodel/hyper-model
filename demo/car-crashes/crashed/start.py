@@ -6,13 +6,14 @@ from flask import request
 # Import my local modules
 from crashed import shared, pipeline, inference
 
+
 def main():
     # Basic configuration and naming of stuff
     config = {
         "package_name": "crashed",
         "script_name": "crashed",
         "container_url": "growingdata/demo-crashed:tez-test",
-        "port": 8000
+        "port": 8000,
     }
     # Create a reference to our "App" object which maintains state
     # about both the Inference and Pipeline phases of the model
@@ -32,16 +33,14 @@ def main():
         This is where we define the workflow for this pipeline purely
         with method invocations.
         """
-        create_training_op = pipeline.create_training()
-        create_test_op = pipeline.create_test()
+        message = "Hello tez!"
+
+        adjusted_message = create_training_op = pipeline.create_training(message=message)
+        create_test_op = pipeline.create_test(adjusted_message=adjusted_message)
         train_model_op = pipeline.train_model()
 
         # Set up the dependencies for this model
-        (
-            train_model_op
-            .after(create_training_op)
-            .after(create_test_op)
-        )
+        (train_model_op.after(create_training_op).after(create_test_op))
 
     @hml.configure_op(app.pipelines)
     def op_configurator(op: hml.HmlContainerOp):
@@ -50,32 +49,32 @@ def main():
         environment variables so that it can work with our cloud
         provider's services
         """
-        (op
+        (
+            op
             # Service account for authentication / authorisation
-            .with_gcp_auth("svcacc-tez-kf")  
-            .with_env("GCP_PROJECT", "grwdt-dev")   
-            .with_env("GCP_ZONE", "australia-southeast1-a")   
-            .with_env("K8S_NAMESPACE", "kubeflow") 
-            .with_env("K8S_CLUSTER", "kf-crashed") 
+            .with_gcp_auth("svcacc-tez-kf")
+            .with_env("GCP_PROJECT", "grwdt-dev")
+            .with_env("GCP_ZONE", "australia-southeast1-a")
+            .with_env("K8S_NAMESPACE", "kubeflow")
+            .with_env("K8S_CLUSTER", "kf-crashed")
             # Data Lake Config
-            .with_env("LAKE_BUCKET", "grwdt-dev-lake") 
-            .with_env("LAKE_PATH", "crashed") 
+            .with_env("LAKE_BUCKET", "grwdt-dev-lake")
+            .with_env("LAKE_PATH", "crashed")
             # Data Warehouse Config
-            .with_env("WAREHOUSE_DATASET", "crashed") 
-            .with_env("WAREHOUSE_LOCATION", "australia-southeast1") 
+            .with_env("WAREHOUSE_DATASET", "crashed")
+            .with_env("WAREHOUSE_LOCATION", "australia-southeast1")
             # Track where we are going to write our artifacts
             .with_empty_dir("artifacts", "/artifacts")
-            .with_env("KFP_ARTIFACT_PATH", "/artifacts") 
+            .with_env("KFP_ARTIFACT_PATH", "/artifacts")
         )
         return op
-
 
     @hml.inference(app.inference)
     def crashed_inference(inference_app: hml.HmlInferenceApp):
         # Get a reference to the current version of my model
         model_container = inference_app.get_model(shared.MODEL_NAME)
         model_container.load()
-        
+
         # Define our routes here, which can then call other functions with more
         # context
         @inference_app.flask.route("/predict", methods=["GET"])
@@ -84,7 +83,6 @@ def main():
 
             feature_params = request.args.to_dict()
             return inference.predict_alcohol(inference_app, model_container, feature_params)
-
 
     app.start()
 

@@ -10,7 +10,8 @@ from crashed.shared import build_feature_matrix
 
 @hml.op()
 @hml.pass_context
-def create_training(ctx):
+def create_training(ctx, message):
+    logging.info(f"create_training: {message}")
     services: GooglePlatformServices = ctx.obj["services"]
     model_container = get_model_container(ctx)
 
@@ -21,16 +22,18 @@ def create_training(ctx):
         FROM crashed.crashes_raw 
         WHERE accident_date BETWEEN '2013-01-01' AND '2017-01-01' 
     """
-    services.warehouse.select_into(
-        query, services.config.warehouse_dataset, BQ_TABLE_TRAINING
-    )
+    services.warehouse.select_into(query, services.config.warehouse_dataset, BQ_TABLE_TRAINING)
 
     logging.info(f"Wrote training set to {BQ_TABLE_TRAINING}.  Success!")
+
+    return f"Decorated message: {message}"
 
 
 @hml.op()
 @hml.pass_context
-def create_test(ctx):
+def create_test(ctx, adjusted_message):
+    logging.info(f"create_test: My message is: {adjusted_message}")
+
     services: GooglePlatformServices = ctx.obj["services"]
     model_container = get_model_container(ctx)
 
@@ -41,9 +44,7 @@ def create_test(ctx):
         FROM crashed.crashes_raw 
         WHERE accident_date > '2018-01-01'
     """
-    services.warehouse.select_into(
-        query, services.config.warehouse_dataset, BQ_TABLE_TEST
-    )
+    services.warehouse.select_into(query, services.config.warehouse_dataset, BQ_TABLE_TEST)
 
     logging.info(f"Wrote test set to {BQ_TABLE_TEST}.  Success!")
 

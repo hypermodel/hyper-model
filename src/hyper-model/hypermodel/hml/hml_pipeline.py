@@ -36,8 +36,12 @@ class HmlPipeline:
         # Create a command to execute the whole pipeline
         self.cli_all = click.command(name="run-all")(self.run_all)
 
-        self.deploy_dev = self.apply_deploy_options(click.command(name="deploy-dev")(self._deploy_dev))
-        self.deploy_prod = self.apply_deploy_options(click.command(name="deploy-prod")(self._deploy_prod))
+        self.deploy_dev = self.apply_deploy_options(
+            click.command(name="deploy-dev")(self._deploy_dev)
+        )
+        self.deploy_prod = self.apply_deploy_options(
+            click.command(name="deploy-prod")(self._deploy_prod)
+        )
 
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
@@ -65,12 +69,22 @@ class HmlPipeline:
         Returns:
             The current `HmlPipeline` (self)
         """
-        func = click.option("-h", "--host", required=False, help="Endpoint of the KFP API service to use.")(func)
-        func = click.option("-c", "--client-id", required=False, help="Client ID for IAP protected endpoint.")(func)
-        func = click.option("-n", "--namespace", required=False, default="kubeflow", help="Kubernetes namespace to connect to the KFP API.")(func)
+        func = click.option(
+            "-h", "--host", required=False, help="Endpoint of the KFP API service to use."
+        )(func)
+        func = click.option(
+            "-c", "--client-id", required=False, help="Client ID for IAP protected endpoint."
+        )(func)
+        func = click.option(
+            "-n",
+            "--namespace",
+            required=False,
+            default="kubeflow",
+            help="Kubernetes namespace to connect to the KFP API.",
+        )(func)
         return func
 
-    def with_cron(self, cron: str) -> Optional['HmlPipeline']:
+    def with_cron(self, cron: str) -> Optional["HmlPipeline"]:
         """
         Bind a `cron` expression to the Pipeline, telling Kubeflow to execute the Pipeline on 
         the specified schedule
@@ -84,7 +98,7 @@ class HmlPipeline:
         self.cron = cron
         return self
 
-    def with_experiment(self, experiment: str) -> Optional['HmlPipeline']:
+    def with_experiment(self, experiment: str) -> Optional["HmlPipeline"]:
         """
         Bind execution jobs to the specified experiment (only one).
 
@@ -128,10 +142,14 @@ class HmlPipeline:
         """
 
         if task_name not in self.task_map:
-            raise Exception(f"Unable to run task: {task_name}, not found in Workflow for pipeine: {self.name}")
+            raise Exception(
+                f"Unable to run task: {task_name}, not found in Workflow for pipeine: {self.name}"
+            )
 
         if task_name not in self.ops_dict:
-            raise Exception(f"Unable to run task: {task_name}, not found in Ops for pipeine: {self.name}")
+            raise Exception(
+                f"Unable to run task: {task_name}, not found in Ops for pipeine: {self.name}"
+            )
 
         # Check to make sure we havent' already run
         if task_name in run_log:
@@ -192,7 +210,7 @@ class HmlPipeline:
         # to the `HmlContainerOp`, without damaging the re-usabulity of the
         # op.
         _pipeline_enter(self)
-        workflow = Compiler()._compile(self.pipeline_func)
+        workflow = Compiler()._create_workflow(self.pipeline_func)
         _pipeline_exit()
 
         return workflow

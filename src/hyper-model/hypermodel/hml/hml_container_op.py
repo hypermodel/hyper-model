@@ -54,8 +54,24 @@ class HmlContainerOp(object):
             name=f"{self.name}",
             image=self.pipeline.config["container_url"],
             command=self.pipeline.config["script_name"],
-            arguments=["pipelines", self.pipeline.name, self.name]
+            arguments=["pipelines", self.pipeline.name, self.name],
         )
+
+        # Create my list of inputs
+        inputs: List[PipelineParam] = []
+        for param_name in kwargs:
+            input_value = kwargs[param_name]
+            input_type = type(input_value)
+            if isinstance(input_value, dsl.ContainerOp):
+                logging.info(f"Binding input for {self.name} -> {param_name}: {input_value.name}")
+                p = dsl.PipelineParam(name=param_name, op_name=input_value.name)
+            else:
+                logging.info(f"Binding input value for {self.name} -> {param_name}: {input_value}")
+                p = dsl.PipelineParam(name=param_name, value=kwargs[param_name])
+
+            inputs.append(p)
+
+        self.op.inputs = inputs
         self.op.hml_op = self
 
         # Create our command, but it won't be bound to a group
@@ -75,7 +91,7 @@ class HmlContainerOp(object):
         """
         return self.func(**self.kwargs)
 
-    def with_image(self, container_image_url: str) -> Optional['HmlContainerOp']:
+    def with_image(self, container_image_url: str) -> Optional["HmlContainerOp"]:
         """
         Set information about which container to use 
 
@@ -93,7 +109,9 @@ class HmlContainerOp(object):
 
         return self
 
-    def with_command(self, container_command: str, container_args: List[str]) -> Optional['HmlContainerOp']:
+    def with_command(
+        self, container_command: str, container_args: List[str]
+    ) -> Optional["HmlContainerOp"]:
         """
         Set the command / arguments to execute within the container as a part of this job.
 
@@ -109,7 +127,7 @@ class HmlContainerOp(object):
 
         return self
 
-    def with_secret(self, secret_name: str, mount_path: str) -> Optional['HmlContainerOp']:
+    def with_secret(self, secret_name: str, mount_path: str) -> Optional["HmlContainerOp"]:
         """
         Bind a secret given by `secret_name` to the local path defined in `mount_path`
 
@@ -124,21 +142,13 @@ class HmlContainerOp(object):
 
         self.op.add_volume(
             k8s_client.V1Volume(
-                name=volume_name,
-                secret=k8s_client.V1SecretVolumeSource(
-                    secret_name=secret_name,
-                )
+                name=volume_name, secret=k8s_client.V1SecretVolumeSource(secret_name=secret_name)
             )
         )
-        self.op.add_volume_mount(
-            k8s_client.V1VolumeMount(
-                name=volume_name,
-                mount_path=mount_path,
-            )
-        )
+        self.op.add_volume_mount(k8s_client.V1VolumeMount(name=volume_name, mount_path=mount_path))
         return self
 
-    def with_gcp_auth(self, secret_name: str) -> Optional['HmlContainerOp']:
+    def with_gcp_auth(self, secret_name: str) -> Optional["HmlContainerOp"]:
         """
         Use the secret given in `secret_name` as the service account to use for GCP related
         SDK api calls (e.g. mount the secret to a path, then bind an environment variable
@@ -183,15 +193,7 @@ class HmlContainerOp(object):
         """
         # Add a writable volume
         self.op.add_volume(
-            k8s_client.V1Volume(
-                name=name,
-                empty_dir=k8s_client.V1EmptyDirVolumeSource()
-            )
+            k8s_client.V1Volume(name=name, empty_dir=k8s_client.V1EmptyDirVolumeSource())
         )
-        self.op.add_volume_mount(
-            k8s_client.V1VolumeMount(
-                name=name,
-                mount_path=mount_path,
-            )
-        )
+        self.op.add_volume_mount(k8s_client.V1VolumeMount(name=name, mount_path=mount_path))
         return self
