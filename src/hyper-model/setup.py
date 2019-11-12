@@ -15,10 +15,10 @@
 from setuptools import setup, find_packages
 
 NAME = "hypermodel"
-VERSION = '0.1.78'
+VERSION = "0.1.78"
 REQUIRES = [
     "click",
-    "kfp",
+    "kfp==0.1.34",
     "pandas",
     "joblib",
     "google-cloud",
@@ -31,7 +31,7 @@ REQUIRES = [
     "flask",
     "waitress",
     "sphinx_rtd_theme",
-    "kubernetes>=8.0.0, <=9.0.0"
+    "kubernetes>=8.0.0, <=9.0.0",
 ]
 
 setup(

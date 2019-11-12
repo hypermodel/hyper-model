@@ -56,28 +56,47 @@ class HmlContainerOp(object):
 
         self.pipeline = _current_pipeline
 
+
+
+        # Create my list of inputs
+        self.inputs: List[PipelineParam] = []
+        self.arguments: List[str] = ["pipelines", self.pipeline.name, self.name]
+        for param_name in kwargs:
+            input_value = kwargs[param_name]
+            input_type = type(input_value)
+            if isinstance(input_value, dsl.PipelineParam):
+                # This is a hardcoded value
+                p = input_value    
+                self.arguments.append(f"--{param_name}")
+                self.arguments.append(input_value)
+                logging.info(f"Binding input for {self.name} -> {param_name}: from PipelineParam ({p.name})")
+
+            elif isinstance(input_value, dsl.ContainerOp):
+                # This is an output from another Op
+                input_op_name = sanitize_k8s_name(input_value.name)
+                logging.info(f"Binding input for {self.name} -> {param_name}: from ({input_op_name})")
+
+                self.arguments.append(f"--{param_name}")
+                self.arguments.append("{{tasks.%s.outputs.parameters.%s}}" % (input_op_name, param_name))
+                p = dsl.PipelineParam(name=param_name, op_name=input_op_name)
+            else:
+                # This is a pipeline parameter
+                logging.info(f"Binding input value for {self.name} -> {param_name}: {input_value}")
+                p = dsl.PipelineParam(name=param_name, value=kwargs[param_name])
+                self.arguments.append(f"--{param_name}")
+                self.arguments.append("{{inputs.parameters.%s}}" % param_name)
+
+
+            self.inputs.append(p)
+
         self.op = dsl.ContainerOp(
             name=f"{self.name}",
             image=self.pipeline.image_url,
             command=self.pipeline.package_entrypoint,
-            arguments=["pipelines", self.pipeline.name, self.name],
+            arguments=self.arguments,
         )
 
-        # Create my list of inputs
-        inputs: List[PipelineParam] = []
-        for param_name in kwargs:
-            input_value = kwargs[param_name]
-            input_type = type(input_value)
-            if isinstance(input_value, dsl.ContainerOp):
-                logging.info(f"Binding input for {self.name} -> {param_name}: {input_value.name}")
-                p = dsl.PipelineParam(name=param_name, op_name=input_value.name)
-            else:
-                logging.info(f"Binding input value for {self.name} -> {param_name}: {input_value}")
-                p = dsl.PipelineParam(name=param_name, value=kwargs[param_name])
-
-            inputs.append(p)
-
-        self.op.inputs = inputs
+        self.op.inputs = self.inputs
         self.op.hml_op = self
 
         # Create our command, but it won't be bound to a group

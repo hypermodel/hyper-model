@@ -1,5 +1,6 @@
 import click
 import json
+import os
 from typing import List, Dict, Optional
 from datetime import datetime
 from kfp import dsl
@@ -164,6 +165,19 @@ class HmlPipeline:
 
         # Run the actual one
         ret = hml_op.invoke()
+
+        # Now we need to take the returnValue and serialize it as a file
+        # so that it can be picked up as the default output variable
+        if ret is not None:
+            if "HML_TMP" not in os.environ:
+                temp_path = os.environ["TEMP"]
+                logging.error(f"Unable to load environment variable $HML_TMP, using default value from $TEMP: '{temp_path}'")
+            else:
+                temp_path = os.environ["HML_TMP"]
+            
+            with open(os.path.join(temp_path, "default-output.json")) as f:
+                json.dump(ret, f)
+
         run_log[hml_op.k8s_name] = True
 
     def get_dag(self):

@@ -31,12 +31,12 @@ def main():
     app.register_model(shared.MODEL_NAME, crashed_model)
 
     @hml.pipeline(app.pipelines, cron="0 0 * * *", experiment="demos")
-    def crashed_pipeline():
+    def crashed_pipeline(message: str = "Hello tez!"):
         """
         This is where we define the workflow for this pipeline purely
         with method invocations.
         """
-        message = "Hello tez!"
+        # message = "Hello tez!"
 
         adjusted_message = create_training_op = pipeline.create_training(message=message)
         create_test_op = pipeline.create_test(adjusted_message=adjusted_message)
