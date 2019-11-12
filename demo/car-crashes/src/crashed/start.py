@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Dict, List
 from hypermodel import hml
 from flask import request
@@ -8,16 +9,18 @@ from crashed import shared, pipeline, inference
 
 
 def main():
-    # Basic configuration and naming of stuff
-    config = {
-        "package_name": "crashed",
-        "script_name": "crashed",
-        "container_url": "growingdata/demo-crashed:tez-test",
-        "port": 8000,
-    }
     # Create a reference to our "App" object which maintains state
     # about both the Inference and Pipeline phases of the model
-    app = hml.HmlApp(name="model_app", platform="GCP", config=config)
+    image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
+
+    app = hml.HmlApp(
+        name="car-crashes",
+        platform="GCP",
+        image_url=image_url,
+        package_entrypoint="crashed",
+        inference_port=8000,
+        k8s_namespace="kubeflow",
+    )
 
     # Create a reference to our ModelContainer, which tells us about
     # the features of the model, where its current version lives and
@@ -42,13 +45,14 @@ def main():
         # Set up the dependencies for this model
         (train_model_op.after(create_training_op).after(create_test_op))
 
-    @hml.configure_op(app.pipelines)
+    @hml.deploy_op(app.pipelines)
     def op_configurator(op: hml.HmlContainerOp):
         """
         Configure our Pipeline Operation Pods with the right secrets and 
         environment variables so that it can work with our cloud
         provider's services
         """
+
         (
             op
             # Service account for authentication / authorisation
@@ -65,7 +69,11 @@ def main():
             .with_env("WAREHOUSE_LOCATION", "australia-southeast1")
             # Track where we are going to write our artifacts
             .with_empty_dir("artifacts", "/artifacts")
-            .with_env("KFP_ARTIFACT_PATH", "/artifacts")
+            # Pass through environment variables from my CI/CD Environment
+            # into my container
+            .with_env("GITLAB_TOKEN", os.environ["GITLAB_TOKEN"])
+            .with_env("GITLAB_PROJECT", os.environ["GITLAB_PROJECT"])
+            .with_env("GITLAB_URL", os.environ["GITLAB_URL"])
         )
         return op
 
@@ -83,6 +91,19 @@ def main():
 
             feature_params = request.args.to_dict()
             return inference.predict_alcohol(inference_app, model_container, feature_params)
+
+    @hml.deploy_inference(app.inference)
+    def deploy_inference(deployment: hml.HmlInferenceDeployment):
+        print(
+            f"Preparing deploying: {deployment.deployment_name} ({deployment.k8s_container.image} -> {deployment.k8s_container.args} )"
+        )
+
+        (
+            deployment.with_gcp_auth("svcacc-tez-kf")
+            .with_empty_dir("tmp", "/temp")
+            .with_empty_dir("artifacts", "/artifacts")
+        )
+        pass
 
     app.start()
 

@@ -40,13 +40,15 @@ class SqliteDataWarehouse(ABC):
         connection = sqlite3.connect(output_dataset)
         cur = connection.cursor()
 
-        #selectintoQuery="select * into "+output_table+" from ("+query+") tt"
+        # selectintoQuery="select * into "+output_table+" from ("+query+") tt"
 
         # drop table if it exists
         try:
             cur.execute(f"drop table {output_table}")
         except:
-            logging.info(f"Table {output_table} could not be dropped. It may not exist or there may be an issue with the DB connection.")
+            logging.info(
+                f"Table {output_table} could not be dropped. It may not exist or there may be an issue with the DB connection."
+            )
 
         selectintoQuery = f"CREATE TABLE {output_table} AS {query}"
 
@@ -61,19 +63,19 @@ class SqliteDataWarehouse(ABC):
 
         # get reference to DB
         connection = sqlite3.connect(dbLocation)
-        retDataFrame = pd.read_sql_query("SELECT * from "+tableName, connection)
+        retDataFrame = pd.read_sql_query("SELECT * from " + tableName, connection)
         connection.close()
         return retDataFrame
 
     def dataframe_from_query(self, query: str) -> pd.DataFrame:
         logging.info(f"SqliteDataWarehouse.dataframe_from_query")
-        dbLocation = config.default_sql_lite_db_file
+        dbLocation = self.config.default_sql_lite_db_file
         connection = sqlite3.connect(dbLocation)
         retDataFrame = pd.read_sql_query(query, connection)
         connection.close()
         return retDataFrame
 
-    def get_table_columns(self, dbLocation: str, query: str)->List[SqlColumn]:
+    def get_table_columns(self, dbLocation: str, query: str) -> List[SqlColumn]:
         dbLocation = self.config.default_sql_lite_db_file
         connection = sqlite3.connect(dbLocation)
         # confining the query to return minimum rows
@@ -131,7 +133,7 @@ class SqliteDataWarehouse(ABC):
         # #print(tbl.to_sql())
         # return tbl
         # get reference to DB
-        columns = get_table_columns(dbLocation, "select * from "+tableName+" limit 1")
+        columns = self.get_table_columns(dbLocation, "select * from " + tableName + " limit 1")
         # as SQL lite does not have a dataset ID and table ID using the table name for that
         retTable = SqlTable(tableName, tableName, columns)
         return retTable
@@ -157,7 +159,7 @@ def test_dummy():
 
     cur = conn.cursor()
 
-    for row in cur.execute('PRAGMA table_info( '+tableName+")"):
+    for row in cur.execute("PRAGMA table_info( " + tableName + ")"):
         logging.debug(row)
 
     conn.close()
@@ -168,13 +170,15 @@ def test_import_csv():
     sqlDW = SqliteDataWarehouse(config)
     dbNameLoc = "titanic_db.dat"
     tableName = "titanic_train_table"
-    ret = sqlDW.import_csv("C:\\Amit\\hypermodel\\hyper-model\\demo\\tragic-titanic\\data\\titanic_train.csv", dbNameLoc, tableName)
+    ret = sqlDW.import_csv(
+        "C:\\Amit\\hypermodel\\hyper-model\\demo\\tragic-titanic\\data\\titanic_train.csv", dbNameLoc, tableName
+    )
 
     conn = sqlite3.connect(dbNameLoc)
 
     cur = conn.cursor()
 
-    for row in cur.execute('SELECT * FROM '+tableName):
+    for row in cur.execute("SELECT * FROM " + tableName):
         logging.debug(row)
 
     conn.close()

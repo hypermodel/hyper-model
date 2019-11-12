@@ -7,7 +7,7 @@ config = {
     "container_url": "growingdata/simple_pipeline",
     "lake_path": "./lake",
     "warehouse_path": "./warehouse/sqlite-warehouse.db",
-    "port": 9000
+    "port": 9000,
 }
 
 
@@ -22,15 +22,17 @@ app.pipelines.configure_op(op_configurator)
 
 
 @hml.op()
-@hml.option('-f', '--firstname', required=True, help='The users first name')
+@hml.option("-f", "--firstname", required=True, help="The users first name")
 def step_a(ctx, firstname):
-    #print(f"Hello {firstname}")
+    pass
+    # print(f"Hello {firstname}")
 
 
 @hml.op()
-@hml.option('-f', '--firstname', required=True, help='The users first name')
+@hml.option("-f", "--firstname", required=True, help="The users first name")
 def step_b(ctx, firstname):
-    #print(f"goodbye {firstname}")
+    pass
+    # print(f"goodbye {firstname}")
 
 
 @hml.pipeline(app=app)

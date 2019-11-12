@@ -61,6 +61,8 @@ pip install -e .
 
 Hyper Model Projects provide are self-contained Python Packages, providing all the code required for both Training and Inferences phases. Hyper Model Projects are executable locally as console scripts.
 
+The code in the walk through is found in this repository here: https://github.com/GrowingData/hyper-model/tree/master/demo/car-crashes
+
 Project layout:
 
 - demo_pkg/
@@ -69,14 +71,13 @@ Project layout:
     - inference.py
     - shared.py
     - app.Dockerfile
-    - inference_deployment.yml
     - start.py
   - setup.py
   - Readme.md
 
 Lets run through the purpose of each file:
 
-## setup.py
+## `setup.py`
 
 This file is reponsible for defining the Python Package that this application will be run as, as per
 any other python package.
@@ -112,15 +113,11 @@ setup(
 
 Of note is that we define a console_script entrypoint which enables us to launch the project via the command line. The examples, and Kubeflow Workflow definitions rely on an entrypoint being defined in this way. E.g. `entry_points={"console_scripts": ["crashed = crashed.start:main"]}` is important
 
-## start.py
+## `start.py`
 
 This is our entrypoint into the application (HmlApp), along with its two central components the HmlPipelineApp (used for data processing and training) and the HmlInferenceApp (used for generating inferences / predictions via Json API).
 
-### Code Walkthrough
-
-The code in the walk through is found in this repository here: https://github.com/GrowingData/hyper-model/tree/master/demo/car-crashes
-
-#### Main, wrapper method (start.py)
+### Main, wrapper method (start.py)
 
 ```python
 import logging
@@ -132,54 +129,43 @@ from flask import request
 from crashed import shared, pipeline, inference
 
 def main():
-  app = hml.HmlApp(name="model_app", platform="GCP", config=config)
+    # Create a reference to our "App" object which maintains state
+    # about both the Inference and Pipeline phases of the model
+    app = hml.HmlApp(
+        name="car-crashes",
+        platform="GCP",
+        image_url=os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"],
+        package_entrypoint="crashed",
+        inference_port=8000,
+        k8s_namespace="kubeflow")
 
   # ... Code from the rest of the walkthrough ...
 
   app.start()
 ```
 
-An HmlApp is responsible for managing both the Pipeline and Inference phases of the application, helping to manage shared functionality, such as the CLI and Kubeflow integration.
+An HmlApp is responsible for managing both the Pipeline and Inference phases of the application, helping to manage shared functionality, such as the CLI and Kubeflow integration. The HmlApp is also responsible for deploying the HmlPipelineApp to Kubeflow, and deploying the HmlInferenceApp to Kubernetes as a Deployment / Service.
 
-#### Set up config
+An `HmlApp` may have multiple `HmlPipelines` and `ModelContainers`, but only a single `HmlInferenceApp`.
 
-```python
-    config = {
-        "package_name": "crashed",
-        "script_name": "crashed",
-        "container_url": "growingdata/demo-crashed:tez-test",
-        "port": 8000
-    }
-```
+The `image_url` field here is the address of the Docker Image containing a fully functional container with the package installed. When this container is loaded, it should be possible to execute the `package_entrypoint` script within the container and have this code be exectured.
 
-This sets up shared configuration used by the application. The `container_url` is the docker based url to the current version of the container. The container should be build during ci/cd - although it may also be build locally, using the following commands:
+Note: In the future, the HmlInferenceApp will utilise KFServing.
 
-```sh
-docker build -t growingdata/demo-crashed:tez-test -f ./demo/car-crashes/crashed.Dockerfile .
-docker push growingdata/demo-crashed:tez-test
-```
+### Define & Register a reference for the ML Model
 
-Where you will need to update the url's to something that you have permission to write to.
+HyperModel maintains meta data about the Machine Learning model, including information about features, the "target" (e.g. what we are trying to predict). This helps to build re-usable pipeline operations, as we can always rely on having metadata in a certain format.
 
-#### Define the application context object
-
-```python
-    app = hml.HmlApp(name="model_app", platform="GCP", config=config)
-```
-
-#### Define & Register a reference for the ML Model
+The actual metadata for this example is defined in `shared.py`, and can be registered with our HmlApp using the code below:
 
 ```python
     crashed_model = shared.crashed_model_container(app)
     app.register_model(shared.MODEL_NAME, crashed_model)
 ```
 
-HyperModel maintains a reference to the current Model, which is generated at the end of the Pipeline
-execution and then loaded on Initialization of the Inference Application. This reference contains
-information such as how features can be encoded, normalisation parameters and a reference to the actual
-joblib file encoding the model.
+The `HmlModelContainer` object is also responsible for building the ModelReference during the training / pipeline phase. This `ModelReference` is then loaded during Initialization of the Inference Application. The `ModelReference` contains information about the distribution of numeric features, distinct values of categorical features and the all important `.joblib` file containing the actual model.
 
-#### Define your Pipeline
+### Define your Pipeline
 
 ```python
     @hml.pipeline(app.pipelines, cron="0 0 * * *", experiment="demos")
@@ -200,18 +186,18 @@ joblib file encoding the model.
         )
 ```
 
-This method defines the Kubeflow Pipeline `crashed_pipeline` which will be deployed using the `demos`
-experiment within Kubeflow. Each function invocation within the `crashed_pipeline()` method defines
-Kubeflow ContainerOps which execute the `script_name` defined above in `config` with the correct CLI
-parameters.
+This method defines the Kubeflow Pipeline `crashed_pipeline` which will be deployed using the `demos` experiment within Kubeflow. Each function invocation within the `crashed_pipeline()` method defines Kubeflow ContainerOps which execute the `script_name` defined above in `config` with the correct CLI parameters.
 
-The `@hml.pipeline` decorator is essentially a wrapper for the Kubeflow SDK's `@dsl.pipeline` decorator
-but with additional functionality to enable each `ContainerOp` to be executed via the command line.
+The `@hml.pipeline` decorator is essentially a wrapper for the Kubeflow SDK's `@dsl.pipeline` decorator but with additional functionality to enable each `ContainerOp` to be executed via the command line.
 
-#### Configure the execution context of the container
+### Configure Pipeline Operations for Deployment
+
+Within Kubeflow, all Ops within a Pipeline are executed as invocations of Docker Images managed by Kubernetes. This means that we often need to apply additional configuration for the deployment of these containers.
+
+The `@hml.deploy_op` decorator lets us configure the Container within the Kubeflow Pipelines Workflow so that we can bind secrets, bind environment variables, mount volumes, etc.
 
 ```python
-    @hml.configure_op(app.pipelines)
+    @hml.deploy_op(app.pipelines)
     def op_configurator(op):
         """
         Configure our Pipeline Operation Pods with the right secrets and
@@ -229,12 +215,9 @@ but with additional functionality to enable each `ContainerOp` to be executed vi
         return op
 ```
 
-Containers require configuration, which is done by using the `@hml.configure_op(app.pipelines)` decorator
-on a method accepting an `hml.HmlContainerOp` as its parameter. This function enables us to manipulate the
-final container definition within the Kubeflow Pipelines Workflow so that we can bind secrets, bind environment
-variables, mount volumes, etc.
+#### Define your Inference API
 
-#### Configure your Inference API
+With the model built, we need to think about how we can use the model to make predictions. We do this by defining a method to define routes and initialize our model, decorated with the `@hml.inference` decorator.
 
 ```python
     @hml.inference(app.inference)
@@ -251,20 +234,34 @@ variables, mount volumes, etc.
 
             feature_params = request.args.to_dict()
             return inference.predict_alcohol(inference_app, model_container, feature_params)
-
 ```
 
-When the inference application is executed (e.g. with `crashed inference run-dev`), this function will be executed prior to the Flask application starting. This provides us with an opportunity to load the required model into memory (e.g. from the DataLake) using `model_container.load()`.
+When the inference application is executed (e.g. with `crashed inference run-prod`), this function will be executed prior to the Flask application starting. This provides us with an opportunity to load the required model into memory (e.g. from the DataLake) using `model_container.load()`.
 
 With the model loaded into memory, we can also define our routes to actually make predictions. In this example we are simple passing the execution context to the method defined in `inference.predict_alcohol()`.
 
-At present, the InferenceAPI's are deployed using standard Kubernetes Deployments / Services / Ingress. In the future, we plan on migrating this to KSServing.
+At present, the InferenceAPI's are deployed using standard Kubernetes Deployments / Services / Ingress. In the future, we plan on migrating this to KFServing.
+
+### Configure Inference API for deployment
+
+Again, containers deployed to Kubernetes will require configuration prior to deployment to bind Service Accounts, mount volumes, set resource limits, etc. This is achieved by using the `@hml.deploy_inference` decorator which enables us to configure / override the default `Deployment` and `Service` used to run the Inference API in Kubernetes.
+
+```python
+    @hml.deploy_inference(app.inference)
+    def deploy_inference(deployment: hml.HmlInferenceDeployment):
+        print(f"Preparing deploying: {deployment.deployment_name} ({deployment.k8s_container.image} -> {deployment.k8s_container.args} )")
+
+        (
+            deployment
+            .with_gcp_auth("svcacc-tez-kf")
+            .with_empty_dir("tmp", "/temp")
+            .with_empty_dir("artifacts", "/artifacts")
+        )
+```
 
 ## pipeline.py
 
-This module defines our different pipeline operations, with functions decorated with `@hml.op()` representing
-Kubeflow Operations to be run within a Pipeline. Importantly, Kubeflow Operations are designed to be re-used
-and thus are only bound to a Pipeline at run time, via the function decorated with @hml.pipeline().
+This module defines our different pipeline operations, with functions decorated with `@hml.op()` representing Kubeflow Operations to be run within a Pipeline. Importantly, Kubeflow Operations are designed to be re-used and thus are only bound to a Pipeline at run time, via the function decorated with @hml.pipeline().
 
 It is importand that the pipeline build a "ModelContainer" object, serialized as JSON which contains details about the newly trained model, including a reference to the joblib file defining the final model. This `ModelContainer` object will be loaded by the `InferencesApp`
 
@@ -318,6 +315,12 @@ Run using the Waitress based serving engine
 
 ```sh
 <your_app> inference run-prod
+```
+
+## Deploy the Inference Application
+
+```sh
+<your_app> inference deploy
 ```
 
 # Development setup

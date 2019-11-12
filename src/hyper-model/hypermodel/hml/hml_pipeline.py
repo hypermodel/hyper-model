@@ -1,5 +1,6 @@
 import click
 import json
+from typing import List, Dict, Optional
 from datetime import datetime
 from kfp import dsl
 from kfp import Client
@@ -11,20 +12,29 @@ from hypermodel.kubeflow.deploy import deploy_pipeline
 
 
 class HmlPipeline:
-    def __init__(self, config: Dict[str, str], cli, pipeline_func, op_builders):
-        self.config = config
+    def __init__(
+        self,
+        cli: click.Group,
+        pipeline_func: Callable,
+        image_url: str,
+        package_entrypoint: str,
+        op_builders: List[Callable[[HmlContainerOp], HmlContainerOp]],
+    ):
         self.name = pipeline_func.__name__
         self.pipeline_func = pipeline_func
         self.kubeflow_pipeline = dsl.pipeline(pipeline_func, pipeline_func.__name__)
 
-        self.cron: str = None
-        self.experiment: str = None
+        self.cron: Optional[str] = None
+        self.experiment: Optional[str] = None
+
+        self.image_url = image_url
+        self.package_entrypoint = package_entrypoint
 
         # The methods we use to configure our Ops for running in Kubeflow
         self.op_builders = op_builders
 
-        self.ops_list = []
-        self.ops_dict = {}
+        self.ops_list: List[HmlContainerOp] = []
+        self.ops_dict: Dict[str, HmlContainerOp] = {}
 
         # We treat the pipeline as a "group" of commands, rather than actually executing
         # anything.  We can then bind a
@@ -36,12 +46,8 @@ class HmlPipeline:
         # Create a command to execute the whole pipeline
         self.cli_all = click.command(name="run-all")(self.run_all)
 
-        self.deploy_dev = self.apply_deploy_options(
-            click.command(name="deploy-dev")(self._deploy_dev)
-        )
-        self.deploy_prod = self.apply_deploy_options(
-            click.command(name="deploy-prod")(self._deploy_prod)
-        )
+        self.deploy_dev = self.apply_deploy_options(click.command(name="deploy-dev")(self._deploy_dev))
+        self.deploy_prod = self.apply_deploy_options(click.command(name="deploy-prod")(self._deploy_prod))
 
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
@@ -50,7 +56,7 @@ class HmlPipeline:
         self.workflow = self._get_workflow()
         self.dag = self.get_dag()
         self.tasks = self.dag["tasks"]
-        self.task_map = dict()
+        self.task_map: Dict[str, dict] = dict()
 
         for t in self.tasks:
             task_name = t["name"]
@@ -69,12 +75,8 @@ class HmlPipeline:
         Returns:
             The current `HmlPipeline` (self)
         """
-        func = click.option(
-            "-h", "--host", required=False, help="Endpoint of the KFP API service to use."
-        )(func)
-        func = click.option(
-            "-c", "--client-id", required=False, help="Client ID for IAP protected endpoint."
-        )(func)
+        func = click.option("-h", "--host", required=False, help="Endpoint of the KFP API service to use.")(func)
+        func = click.option("-c", "--client-id", required=False, help="Client ID for IAP protected endpoint.")(func)
         func = click.option(
             "-n",
             "--namespace",
@@ -142,14 +144,10 @@ class HmlPipeline:
         """
 
         if task_name not in self.task_map:
-            raise Exception(
-                f"Unable to run task: {task_name}, not found in Workflow for pipeine: {self.name}"
-            )
+            raise Exception(f"Unable to run task: {task_name}, not found in Workflow for pipeine: {self.name}")
 
         if task_name not in self.ops_dict:
-            raise Exception(
-                f"Unable to run task: {task_name}, not found in Ops for pipeine: {self.name}"
-            )
+            raise Exception(f"Unable to run task: {task_name}, not found in Ops for pipeine: {self.name}")
 
         # Check to make sure we havent' already run
         if task_name in run_log:
@@ -165,7 +163,7 @@ class HmlPipeline:
                     self.run_task(d, run_log, kwargs)
 
         # Run the actual one
-        ret = hml_op.invoke(**kwargs)
+        ret = hml_op.invoke()
         run_log[hml_op.k8s_name] = True
 
     def get_dag(self):

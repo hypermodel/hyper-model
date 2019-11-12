@@ -1,5 +1,6 @@
 import os
 import tempfile
+from typing import Dict, List, Optional, Callable
 from kfp import Client
 from kfp.compiler import compiler
 from datetime import datetime
@@ -7,13 +8,15 @@ import kfp_server_api
 import yaml
 
 
-class KubeflowClient():
+class KubeflowClient:
     """
     A wrapper of the existing Kubeflow Pipelines Client which enriches it to 
     be able to access more of the Kubeflow Pipelines API.
     """
 
-    def __init__(self, host: str=None, client_id: str=None, namespace: str='kubeflow'):
+    def __init__(
+        self, host: Optional[str] = None, client_id: Optional[str] = None, namespace: Optional[str] = "kubeflow"
+    ):
         """
         Instandiate a new KubeflowClient
 
@@ -29,11 +32,11 @@ class KubeflowClient():
 
         self.config = self.kfp_client._load_config(self.host, self.client_id, self.namespace)
 
-        #print(f"kfp auth:")
-        #print(f"\thost: {self.host}")
-        #print(f"\tclient_id: {self.client_id}")
-        #print(f"\tnamespace: {self.namespace}")
-        #print(f"\tapi_key: {self.config.api_key}")
+        # print(f"kfp auth:")
+        # print(f"\thost: {self.host}")
+        # print(f"\tclient_id: {self.client_id}")
+        # print(f"\tnamespace: {self.namespace}")
+        # print(f"\tapi_key: {self.config.api_key}")
         self.kfp_pipelines = self._connect_pipelines_api()
         self.kfp_runs = self._connect_runs_api()
         self.kfp_jobs = self._connect_jobs_api()
@@ -50,7 +53,7 @@ class KubeflowClient():
         """
 
         try:
-            (_, pipeline_package_path) = tempfile.mkstemp(suffix='.zip')
+            (_, pipeline_package_path) = tempfile.mkstemp(suffix=".zip")
             compiler.Compiler().compile(pipeline_func, pipeline_package_path)
             return self.kfp_client.upload_pipeline(pipeline_package_path, pipeline_name)
         finally:
@@ -77,7 +80,7 @@ class KubeflowClient():
         """
 
         all_experiments = list()
-        next_page_token = ''
+        next_page_token = ""
         while next_page_token is not None:
             response = self.kfp_client.list_experiments(page_size=100, page_token=next_page_token)
             if response.experiments is None:
@@ -86,7 +89,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         count = len(all_experiments)
-        #print(f"list_experiments: found {count}")
+        # print(f"list_experiments: found {count}")
 
         return all_experiments
 
@@ -119,7 +122,7 @@ class KubeflowClient():
         """
 
         all_jobs = list()
-        next_page_token = ''
+        next_page_token = ""
         while next_page_token is not None:
             response = self.kfp_jobs.list_jobs(page_size=100, page_token=next_page_token)
             if response.jobs is None:
@@ -128,7 +131,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         count = len(all_jobs)
-        #print(f"all_jobs: found {count}")
+        # print(f"all_jobs: found {count}")
 
         return all_jobs
 
@@ -145,8 +148,7 @@ class KubeflowClient():
         self.kfp_jobs.delete_job(id=job.id)
         return True
 
-    def create_job(self, name: str, pipeline, experiment,
-                   description=None, enabled=True, max_concurrency=1, cron=None):
+    def create_job(self, name: str, pipeline, experiment, description=None, enabled=True, max_concurrency=1, cron=None):
         """
         Create a new Kubeflow Pipelines Job
 
@@ -163,8 +165,9 @@ class KubeflowClient():
             The Kubeflow API response object.
         """
 
-        key = kfp_server_api.models.ApiResourceKey(id=experiment.id,
-                                                   type=kfp_server_api.models.ApiResourceType.EXPERIMENT)
+        key = kfp_server_api.models.ApiResourceKey(
+            id=experiment.id, type=kfp_server_api.models.ApiResourceType.EXPERIMENT
+        )
 
         reference = kfp_server_api.models.ApiResourceReference(key, kfp_server_api.models.ApiRelationship.OWNER)
 
@@ -182,7 +185,8 @@ class KubeflowClient():
             resource_references=[reference],
             enabled=True,
             trigger=trigger,
-            max_concurrency=str(max_concurrency))
+            max_concurrency=str(max_concurrency),
+        )
 
         response = self.kfp_jobs.create_job(body=run_body)
         return response
@@ -199,7 +203,7 @@ class KubeflowClient():
         """
         experiment = self.get_experiment(experiment_name=experiment_name)
         all_runs = list()
-        next_page_token = ''
+        next_page_token = ""
         while next_page_token is not None:
             response = self.kfp_client.list_runs(page_size=100, page_token=next_page_token)
             if response.runs is None:
@@ -208,7 +212,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         run_count = len(all_runs)
-        #print(f"list_runs: found {run_count}")
+        # print(f"list_runs: found {run_count}")
         return all_runs
 
     def list_pipelines(self):
@@ -220,7 +224,7 @@ class KubeflowClient():
         """
         all_pipelines = list()
         response = self.kfp_client.list_pipelines(page_size=100)
-        next_page_token = ''
+        next_page_token = ""
         while next_page_token is not None:
             response = self.kfp_client.list_pipelines(page_size=100, page_token=next_page_token)
             if response.pipelines is None:
@@ -229,7 +233,7 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         pipeline_count = len(all_pipelines)
-        #print(f"list_pipelines: found {pipeline_count}")
+        # print(f"list_pipelines: found {pipeline_count}")
         return all_pipelines
 
     def find_experiment(self, id=None, name=None):

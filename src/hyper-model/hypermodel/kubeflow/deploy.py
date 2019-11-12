@@ -6,6 +6,7 @@ experiment.
 
 import os
 import click
+from typing import Dict, List, Optional, Callable
 import os
 import kfp
 import sys
@@ -18,7 +19,7 @@ from .kubeflow_client import KubeflowClient
 from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
 
 
-def deploy_pipeline(pipeline, environment: str= "dev", host: str= None, client_id: str= None, namespace: str= None):
+def deploy_pipeline(pipeline, environment: str= "dev", host: Optional[str]= None, client_id: Optional[str]= None, namespace: Optional[str]= None):
     """
     Deploy the current pipeline Kubeflew in the provided ``namespace``
     on the using the Kubeflow api found at ``host`` and authenticate using ``client_id``.
@@ -40,11 +41,9 @@ def deploy_pipeline(pipeline, environment: str= "dev", host: str= None, client_i
         client.delete_pipeline(kf_existing_pipeline)
         logging.info(f"Deleted existing pipeline: {kf_existing_pipeline.name} ({kf_existing_pipeline.id})")
 
-
     _pipeline_enter(pipeline)
     kf_pipeline = client.create_pipeline(pipeline.pipeline_func, pipeline_env_name)
     _pipeline_exit()
-
 
     if pipeline.experiment is None:
         pipeline.experiment = f"{pipeline_env_name} experiments"

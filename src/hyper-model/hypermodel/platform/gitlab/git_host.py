@@ -13,24 +13,31 @@ class GitLabHost(GitHostBase):
 
         # Validate the gitlab config
         if self._config.gitlab_token is None:
-            logging.error(f"No gitlab_token was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
-            raise Exception("No gitlab_token was provided")
+            logging.warning(
+                f"No gitlab_token was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )"
+            )
+            # raise Exception("No gitlab_token was provided")
 
         if self._config.gitlab_project is None:
-            logging.error(f"No gitlab_project was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
-            raise Exception("No gitlab_project was provided")
+            logging.warning(
+                f"No gitlab_project was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )"
+            )
+            # raise Exception("No gitlab_project was provided")
 
         if self._config.gitlab_url is None:
-            logging.error(f"No gitlab_url was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )")
-            raise Exception("No gitlab_url was provided")
+            logging.warning(
+                f"No gitlab_url was found (token: {self._config.gitlab_token}, proj: {self._config.gitlab_project}, url: {self._config.gitlab_url} )"
+            )
+            # raise Exception("No gitlab_url was provided")
 
-    def create_merge_request(self,
-                             reference: dict,
-                             reference_path: str,
-                             description: str = "Something awesome about the Model",
-                             target_branch: str = "master",
-                             labels: List[str] = ['model-bot']
-                             ):
+    def create_merge_request(
+        self,
+        reference: dict,
+        reference_path: str,
+        description: str = "Something awesome about the Model",
+        target_branch: str = "master",
+        labels: List[str] = ["model-bot"],
+    ):
         """
         Given an updated Model reference (with entries relating to the model joblib and
         information about distributiosn of features), create a merge request in GitLab, which:
@@ -64,7 +71,7 @@ class GitLabHost(GitHostBase):
         logging.info(f"create_merge_request: Got project: {self._config.gitlab_project}")
 
         # This is my new branch
-        branch = project.branches.create({'branch': new_branch, 'ref': target_branch})
+        branch = project.branches.create({"branch": new_branch, "ref": target_branch})
         logging.info(f"create_merge_request: Created a new branch from master: {new_branch}")
 
         # Get my file
@@ -74,16 +81,21 @@ class GitLabHost(GitHostBase):
         f.content = model_reference_json
 
         # Now lets commit the change...
-        commit = f.save(branch=new_branch, commit_message=f"Automated model update (via pipeline commit {self._config.ci_commit})")
+        commit = f.save(
+            branch=new_branch, commit_message=f"Automated model update (via pipeline commit {self._config.ci_commit})"
+        )
         logging.info(f"create_merge_request: Updated file via commit")
 
         # Now lets create an awesome Merge Request to enable this to happen
-        mr = project.mergerequests.create({
-            'source_branch': new_branch,
-            'target_branch': target_branch,
-            'title': f"Automated model update (via commit {self._config.ci_commit})",
-            'description': description,
-            'labels': labels})
+        mr = project.mergerequests.create(
+            {
+                "source_branch": new_branch,
+                "target_branch": target_branch,
+                "title": f"Automated model update (via commit {self._config.ci_commit})",
+                "description": description,
+                "labels": labels,
+            }
+        )
 
         logging.info(f"create_merge_request: Created merge request: {mr.web_url}")
         return mr

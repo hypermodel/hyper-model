@@ -13,7 +13,13 @@ from hypermodel.platform.local.services import LocalPlatformServices
 
 
 class HmlApp():
-    def __init__(self, name: str, platform: str, config: Dict[str, str]):
+    def __init__(self,
+                 name: str,
+                 platform: str,
+                 image_url: str,
+                 package_entrypoint: str,
+                 inference_port: int = 8000,
+                 k8s_namespace: str = "kubeflow"):
         """
         Initialize a new Hml App with the given name, platform ("local" or "GCP") and
         a dictionary of configuration values
@@ -22,15 +28,18 @@ class HmlApp():
             name (str): The name of the application
             platform(str): One of "local" or "GCP" depending on which platform services you
                 wish to utilise for DataWarehouse and DataLake functionality
-            config (dict): Additional configuration for the platform 
+            inference_port (int): The port the InferenceApp should run on 
 
         """
         self.name = name
         self.platform = platform
         self.services = self._get_services(platform)
 
-        self.pipelines = HmlPipelineApp(name, self.services, self.cli_root, config)
-        self.inference = HmlInferenceApp(name, self.services, self.cli_root, config)
+        self.image_url = image_url
+        self.package_entrypoint = package_entrypoint
+
+        self.pipelines = HmlPipelineApp(name, self.cli_root, self.image_url, self.package_entrypoint)
+        self.inference = HmlInferenceApp(name, self.cli_root, self.image_url, self.package_entrypoint, inference_port, k8s_namespace)
         self.models: Dict[str, ModelContainer] = dict()
 
     def register_model(self, name: str, model_container: ModelContainer):

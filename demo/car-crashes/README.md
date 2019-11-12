@@ -1,22 +1,13 @@
-# Getting started
+# Reference Kubeflow Machine Learning Implementation using Kubeflow & Gitlab
 
-```
-# Create a conda environment
-conda create -n crashed-env python=3.7
-conda activate crashed-env
-# Install the packaged in "editable" mode
-cd demo/car-crashes
+## Getting started
+
+```sh
+conda create --name hml-dev python=3.7
+conda install -n hml-dev mypy pandas joblib flask waitress click tqdm
+conda activate hml-dev
+
+cd src
+# Install the `demo-crashed` package locally
 pip install -e .
 ```
-In order to start the demo enter ```crashed``` to see options available and the proceed.
-
-# Type hinting & vscode
-
-    - Uninstall "Python for VSCode"
-    - Install "MyPy" & install Python3.8
-    - Enable the "MyPy" Linter and remove the Pep8 linter
-
-# VSCode Theme & Setup
-
-    - Theme "Gloom Dark"
-    - Font: https://github.com/microsoft/cascadia-code

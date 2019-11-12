@@ -13,6 +13,7 @@ class GcpBaseOp(object):
     providing a convenient wrapper over Kubeflow's ContainerOp for use within the
     Google Kubernetes Engine (GKE) on Google Cloud Platform
     """
+
     def __init__(self,
                  config: GooglePlatformConfig,
                  pipeline_name: str,
@@ -54,7 +55,7 @@ class GcpBaseOp(object):
             container_command (str): The command to execute
             container_args (List[str]): The arguments to pass the executable
         """
-        
+
         # Our docker image url
         self.container_image_url = container_image_url
         self.container_command = container_command
@@ -62,7 +63,7 @@ class GcpBaseOp(object):
 
         return self
 
-    def bind_output_artifact_path(self, name:str, path:str):
+    def bind_output_artifact_path(self, name: str, path: str):
         """
         Add an artifact to the Kubeflow Pipeline Operation
         using the ``name`` provided with the content from
@@ -76,7 +77,7 @@ class GcpBaseOp(object):
             A reference to the current GcpBaseOp (for chaining)
         """
 
-        self.output_artifact_paths[name, path]
+        self.output_artifact_paths[name] = path
         return self
 
     def bind_output_file_path(self, name, path):
@@ -93,7 +94,6 @@ class GcpBaseOp(object):
             A reference to the current GcpBaseOp (for chaining)
         """
         self.output_files[name, path]
-
 
     def bind_env(self, variable_name: str, value: str):
         """
@@ -114,7 +114,7 @@ class GcpBaseOp(object):
         """
         Bind a secret with the name ``secret_name`` from Kubernetes (in the 
         same namespace as the container) to the specified ``mount_path`` 
-        
+
         Args:
             secret_name (str): The name of the secret to mount
             mount_path (str): The path to mount the secret to
@@ -129,7 +129,7 @@ class GcpBaseOp(object):
         """
         Bind the ``gcp_auth_secret`` that contains the Service Account that 
         this container should use to authenticate and authorise itself.
-        
+
         Args:
             gcp_auth_secret (str): The name of the secret containing the service 
                 account this container should use
@@ -139,7 +139,6 @@ class GcpBaseOp(object):
         """
         self.gcp_auth_secret = gcp_auth_secret
         return self
-
 
     def op(self, overrides=dict()):
         """
@@ -155,7 +154,7 @@ class GcpBaseOp(object):
 
         return self._build_container_op(overrides=overrides)
 
-    def get(self, key:str):
+    def get(self, key: str):
         """
         Get the value of a variable bound to this Operation, returning
         None if the ``key`` is not found.
@@ -241,7 +240,6 @@ class GcpBaseOp(object):
             op.container.add_env_variable(V1EnvVar(name=name, value=str(value)))
 
         return op
-        
 
     def _bind_gcp_config(self, gcp_config: GooglePlatformConfig):
         for k in gcp_config.data:

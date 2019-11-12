@@ -43,6 +43,14 @@ hypermodel.hml.hml\_inference\_app module
    :undoc-members:
    :show-inheritance:
 
+hypermodel.hml.hml\_inference\_deployment module
+------------------------------------------------
+
+.. automodule:: hypermodel.hml.hml_inference_deployment
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 hypermodel.hml.hml\_pipeline module
 -----------------------------------
 

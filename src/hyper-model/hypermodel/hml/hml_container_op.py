@@ -1,22 +1,24 @@
 import logging
 import click
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from kubernetes.client.models import V1EnvVar
 from kubernetes import client as k8s_client
 from kfp import dsl
 from kfp.gcp import use_gcp_secret
 from hypermodel.utilities.k8s import sanitize_k8s_name
 
-_current_pipeline = None
-_old_pipeline = None
+# from hypermodel.hml.hml_pipeline import HmlPipeline
+
+_current_pipeline: Any = None
+_old_pipeline: Any = None
 
 
-def _pipeline_enter(pipeline):
+def _pipeline_enter(pipeline: Any):
     global _current_pipeline
     global _old_pipeline
 
-    # #print(f"_pipeline_enter: {_current_pipeline} = {pipeline}")
+    logging.info(f"_pipeline_enter: {pipeline.name}")
     _old_pipeline = _current_pipeline
     _current_pipeline = pipeline
 
@@ -25,6 +27,7 @@ def _pipeline_exit():
     global _current_pipeline
     global _old_pipeline
 
+    logging.info(f"_pipeline_exit: {_current_pipeline.name}")
     _current_pipeline = _old_pipeline
 
 
@@ -48,12 +51,15 @@ class HmlContainerOp(object):
         self.kwargs = kwargs
 
         # Store a reference to the current pipeline
+        if _current_pipeline is None:
+            logging.error("Unable to create HmlContainerOp, the `_pipeline_enter` function has not been called")
+
         self.pipeline = _current_pipeline
 
         self.op = dsl.ContainerOp(
             name=f"{self.name}",
-            image=self.pipeline.config["container_url"],
-            command=self.pipeline.config["script_name"],
+            image=self.pipeline.image_url,
+            command=self.pipeline.package_entrypoint,
             arguments=["pipelines", self.pipeline.name, self.name],
         )
 
@@ -109,9 +115,7 @@ class HmlContainerOp(object):
 
         return self
 
-    def with_command(
-        self, container_command: str, container_args: List[str]
-    ) -> Optional["HmlContainerOp"]:
+    def with_command(self, container_command: str, container_args: List[str]) -> Optional["HmlContainerOp"]:
         """
         Set the command / arguments to execute within the container as a part of this job.
 
@@ -141,9 +145,7 @@ class HmlContainerOp(object):
         volume_name = secret_name
 
         self.op.add_volume(
-            k8s_client.V1Volume(
-                name=volume_name, secret=k8s_client.V1SecretVolumeSource(secret_name=secret_name)
-            )
+            k8s_client.V1Volume(name=volume_name, secret=k8s_client.V1SecretVolumeSource(secret_name=secret_name))
         )
         self.op.add_volume_mount(k8s_client.V1VolumeMount(name=volume_name, mount_path=mount_path))
         return self
@@ -164,7 +166,7 @@ class HmlContainerOp(object):
         self.op.apply(use_gcp_secret(secret_name))
         return self
 
-    def with_env(self, variable_name, value):
+    def with_env(self, variable_name, value) -> Optional["HmlContainerOp"]:
         """
         Bind an environment variable with the name `variable_name` and `value` specified
 
@@ -178,7 +180,7 @@ class HmlContainerOp(object):
         self.op.container.add_env_variable(V1EnvVar(name=variable_name, value=str(value)))
         return self
 
-    def with_empty_dir(self, name: str, mount_path: str):
+    def with_empty_dir(self, name: str, mount_path: str) -> Optional["HmlContainerOp"]:
         """
         Create an empy, writable volume with the given `name` mounted to the
         specified `mount_path`
@@ -192,8 +194,6 @@ class HmlContainerOp(object):
             A reference to the current `HmlContainerOp` (self)
         """
         # Add a writable volume
-        self.op.add_volume(
-            k8s_client.V1Volume(name=name, empty_dir=k8s_client.V1EmptyDirVolumeSource())
-        )
+        self.op.add_volume(k8s_client.V1Volume(name=name, empty_dir=k8s_client.V1EmptyDirVolumeSource()))
         self.op.add_volume_mount(k8s_client.V1VolumeMount(name=name, mount_path=mount_path))
         return self
