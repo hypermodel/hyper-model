@@ -1,6 +1,6 @@
 import logging
 import click
-
+import json
 from typing import Dict, List, Optional, Any
 from kubernetes.client.models import V1EnvVar
 from kubernetes import client as k8s_client
@@ -29,6 +29,14 @@ def _pipeline_exit():
 
     logging.info(f"_pipeline_exit: {_current_pipeline.name}")
     _current_pipeline = _old_pipeline
+
+
+def _deserialize_option(ctx, param, value):
+
+    logging.info(f"HmlContainerOp deserializing {param}: {value}")
+    if value.startswith("{"):
+        return json.loads(value)
+    return value
 
 
 class HmlContainerOp(object):
@@ -92,37 +100,54 @@ class HmlContainerOp(object):
             image=self.pipeline.image_url,
             command=self.pipeline.package_entrypoint,
             arguments=self.arguments,
-            file_outputs={'default-json': self.pipeline.default_output_path()},
-
+            file_outputs={"default-json": self.pipeline.default_output_path()},
         )
 
         # Set the re-direction of inputs
         self.op.inputs = self.inputs
-        print(f"self.op.outputs: {self.op.outputs}")
+        # print(f"self.op.outputs: {self.op.outputs}")
 
         # Set the location for the
-
         self.op.hml_op = self
 
         # Create our command, but it won't be bound to a group
         # at this point, we will need for someone else to use this
         # later (e.g. at the Compile step)
-        self.cli_command = click.command(name=self.name)(self.func)
+        # self.cli_command = click.command(name=self.name)(self.invoke)
+        self.cli_command = self._build_command()
 
         self.with_empty_dir("hml-tmp", "/hml-tmp")
         self.with_env("HML_TMP", "/hml-tmp")
 
         self.pipeline._add_op(self)
 
-    def invoke(self):
+    def _build_command(self):
+        wrapped = click.command(name=self.name)(self.invoke)
+        for k in self.kwargs:
+            wrapped = click.option(f"--{k}", callback=_deserialize_option)(wrapped)
+
+        return wrapped
+
+    def invoke(self, **kwargs):
         """
         Actually invoke the function that this ContainerOp refers
         to (for testing / execution in the container)
 
         Returns:
-            A reference to the current `HmlContainerOp` (self)
+            The result of the container operation (e.g. return value), including
+            dumping the result as JSON to the pipelines `default_output_path()`.
         """
-        return self.func(**self.kwargs)
+        ret = self.func(**kwargs)
+
+        output_path = self.pipeline.default_output_path()
+        if ret is None:
+            ret = {}
+
+        logging.info(f"Writing output for {self.pipeline.name}.{self.name} to {output_path}")
+        with open(output_path, "w") as f:
+            json.dump(ret, f)
+
+        return ret
 
     def with_image(self, container_image_url: str) -> Optional["HmlContainerOp"]:
         """

@@ -10,6 +10,7 @@ from crashed.shared import build_feature_matrix
 
 @hml.op()
 @hml.pass_context
+@hml.option("-m", "--message")
 def create_training(ctx, message):
     logging.info(f"create_training: {message}")
     services: GooglePlatformServices = ctx.obj["services"]
@@ -31,6 +32,7 @@ def create_training(ctx, message):
 
 @hml.op()
 @hml.pass_context
+@hml.option("-m", "--adjusted_message")
 def create_test(ctx, adjusted_message):
     logging.info(f"create_test: My message is: {adjusted_message}")
 
@@ -56,16 +58,12 @@ def train_model(ctx):
     app: HmlApp = ctx.obj["app"]
     model_container = get_model_container(ctx)
 
-    training_df = services.warehouse.dataframe_from_table(
-        services.config.warehouse_dataset, BQ_TABLE_TRAINING
-    )
+    training_df = services.warehouse.dataframe_from_table(services.config.warehouse_dataset, BQ_TABLE_TRAINING)
     # training_df.to_csv("/mnt/c/data/crashed/training.csv")
     # training_df = pd.read_csv("/mnt/c/data/crashed/training.csv")
     logging.info("Got Training DataFrame!")
 
-    test_df = services.warehouse.dataframe_from_table(
-        services.config.warehouse_dataset, BQ_TABLE_TEST
-    )
+    test_df = services.warehouse.dataframe_from_table(services.config.warehouse_dataset, BQ_TABLE_TEST)
     # test_df.to_csv("/mnt/c/data/crashed/test.csv")
     # test_df = pd.read_csv("/mnt/c/data/crashed/test.csv")
     logging.info("Got Test DataFrame!")
@@ -91,9 +89,7 @@ def train_model(ctx):
     # Create a merge request for this model to be deployed (don't do it here
     # because we don't want to polute the repository with merge requests relating
     # to test runs)
-    model_container.create_merge_request(
-        reference=ref
-    )
+    model_container.create_merge_request(reference=ref)
     return
 
 

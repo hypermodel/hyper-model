@@ -1,6 +1,7 @@
 import click
 import json
 import os
+import logging
 import yaml
 from typing import List, Dict, Optional
 from datetime import datetime
@@ -25,6 +26,8 @@ class HmlPipeline:
         self.name = pipeline_func.__name__
         self.pipeline_func = pipeline_func
         self.kubeflow_pipeline = dsl.pipeline(pipeline_func, pipeline_func.__name__)
+
+        self.is_deploying = False
 
         self.cron: Optional[str] = None
         self.experiment: Optional[str] = None
@@ -116,15 +119,25 @@ class HmlPipeline:
         return self
 
     def _deploy_dev(self, host: str = None, client_id: str = None, namespace: str = None):
+        self.is_deploying = True
         deploy_pipeline(self, "dev", host, client_id, namespace)
+        self.is_deploying = False
 
     def _deploy_prod(self, host: str = None, client_id: str = None, namespace: str = None):
+        self.is_deploying = True
         deploy_pipeline(self, "prod", host, client_id, namespace)
+        self.is_deploying = False
 
     def run_all(self, **kwargs):
         """
         Run all the steps in the pipeline
         """
+
+        # Lets just execure the Pipeline function, calling invoke?
+        wrapped = click.command(name=self.name)(self.pipeline_func)
+        for k in self.kwargs:
+            wrapped = click.option(f"--{k}", callback=_deserialize_option)(wrapped)
+
         run_log = dict()
 
         for t in self.tasks:
@@ -164,24 +177,26 @@ class HmlPipeline:
                 if d not in run_log:
                     self.run_task(d, run_log, kwargs)
 
-        # Run the actual one
-        ret = hml_op.invoke()
-
-        # Now we need to take the returnValue and serialize it as a file
-        # so that it can be picked up as the default output variable
-        if ret is not None:
-            output_path = self.default_output_path()
-            with open(output_path) as f:
-                json.dump(ret, f)
+        # Execute the operation, including the binding of parameters...
+        # This  is
+        hml_op.invoke()
 
         run_log[hml_op.k8s_name] = True
 
     def default_output_path(self):
+        # Am I runnning on a developers machine in the execution phase (as opposed)
+        # to the deployment phase, or am I running / testing locally?
+        if self.is_deploying:
+            return os.path.join("/hml-tmp", "default-output.json")
+
         if "HML_TMP" not in os.environ:
             temp_path = os.environ["TEMP"]
-            logging.error(f"Unable to load environment variable $HML_TMP, using default value from $TEMP: '{temp_path}'")
+            logging.error(
+                f"Unable to load environment variable $HML_TMP, using default value from $TEMP: '{temp_path}'"
+            )
         else:
             temp_path = os.environ["HML_TMP"]
+
         return os.path.join(temp_path, "default-output.json")
 
     def get_dag(self):
@@ -228,9 +243,9 @@ class HmlPipeline:
         _pipeline_enter(self)
         workflow = Compiler()._create_workflow(self.pipeline_func)
 
-        print("WORKFLOW ->")
-        print(yaml.dump(workflow))
-        print("<- WORKFLOW")
+        # print("WORKFLOW ->")
+        # print(yaml.dump(workflow))
+        # print("<- WORKFLOW")
         _pipeline_exit()
 
         return workflow
