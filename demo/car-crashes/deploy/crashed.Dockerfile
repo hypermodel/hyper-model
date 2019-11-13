@@ -22,15 +22,20 @@ RUN pip install \
 RUN apk --no-cache add \
     git
 
-ADD ./src /pkg_src/demo-car-crashes
+ADD ./demo/car-crashes/src /pkg_src/demo-car-crashes
+ADD ./src/hyper-model /pkg_src/hyper-model
 
-# Clone the current version of HyperModel, and put it in a folder
-# where we can install it easily
-WORKDIR /github
-RUN git clone https://github.com/GrowingData/hyper-model.git
-WORKDIR /github/hyper-model
-RUN git checkout story/hp-015-op-parameters
-RUN cp -r src/hyper-model /pkg_src
+# ADD ./src /pkg_src/demo-car-crashes
+
+# # Clone the current version of HyperModel, and put it in a folder
+# # where we can install it easily
+# WORKDIR /github
+# RUN git clone https://github.com/GrowingData/hyper-model.git
+# WORKDIR /github/hyper-model
+# RUN git checkout story/hp-015-op-parameters
+# RUN cp -r src/hyper-model /pkg_src
+
+# ADD ./src /pkg_src/demo-car-crashes
 
 # Install the current source code version of HyperModel
 WORKDIR /pkg_src/hyper-model

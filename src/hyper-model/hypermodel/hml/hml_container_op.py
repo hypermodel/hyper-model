@@ -109,8 +109,8 @@ class HmlContainerOp(object):
         # later (e.g. at the Compile step)
         self.cli_command = click.command(name=self.name)(self.func)
 
-        self.with_empty_dir("hml_tmp", "/hml-tmp")
-        self.with_env("HML_TMP", "/hml_tmp")
+        self.with_empty_dir("hml-tmp", "/hml-tmp")
+        self.with_env("HML_TMP", "/hml-tmp")
 
         self.pipeline._add_op(self)
 
