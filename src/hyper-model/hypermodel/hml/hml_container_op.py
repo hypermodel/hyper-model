@@ -56,8 +56,6 @@ class HmlContainerOp(object):
 
         self.pipeline = _current_pipeline
 
-
-
         # Create my list of inputs
         self.inputs: List[PipelineParam] = []
         self.arguments: List[str] = ["pipelines", self.pipeline.name, self.name]
@@ -66,7 +64,7 @@ class HmlContainerOp(object):
             input_type = type(input_value)
             if isinstance(input_value, dsl.PipelineParam):
                 # This is a hardcoded value
-                p = input_value    
+                p = input_value
                 self.arguments.append(f"--{param_name}")
                 self.arguments.append(input_value)
                 logging.info(f"Binding input for {self.name} -> {param_name}: from PipelineParam ({p.name})")
@@ -77,7 +75,8 @@ class HmlContainerOp(object):
                 logging.info(f"Binding input for {self.name} -> {param_name}: from ({input_op_name})")
 
                 self.arguments.append(f"--{param_name}")
-                self.arguments.append("{{tasks.%s.outputs.parameters.%s}}" % (input_op_name, param_name))
+                self.arguments.append("{{inputs.parameters.%s}}" % param_name)
+                # self.arguments.append("{{tasks.%s.outputs.parameters.default}}" % (input_op_name))
                 p = dsl.PipelineParam(name=param_name, op_name=input_op_name)
             else:
                 # This is a pipeline parameter
@@ -86,7 +85,6 @@ class HmlContainerOp(object):
                 self.arguments.append(f"--{param_name}")
                 self.arguments.append("{{inputs.parameters.%s}}" % param_name)
 
-
             self.inputs.append(p)
 
         self.op = dsl.ContainerOp(
@@ -94,9 +92,14 @@ class HmlContainerOp(object):
             image=self.pipeline.image_url,
             command=self.pipeline.package_entrypoint,
             arguments=self.arguments,
+            file_outputs={'default': self.pipeline.default_output_path()}
         )
 
+        # Set the re-direction of inputs
         self.op.inputs = self.inputs
+
+        # Set the location for the
+
         self.op.hml_op = self
 
         # Create our command, but it won't be bound to a group

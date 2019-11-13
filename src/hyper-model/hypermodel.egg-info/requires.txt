@@ -1,5 +1,5 @@
 click
-kfp
+kfp==0.1.34
 pandas
 joblib
 google-cloud
@@ -9,3 +9,4 @@ python-gitlab
 flask
 waitress
 sphinx_rtd_theme
+kubernetes<=9.0.0,>=8.0.0

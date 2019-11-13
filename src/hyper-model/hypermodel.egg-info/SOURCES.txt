@@ -17,10 +17,12 @@ hypermodel/features/__init__.py
 hypermodel/features/categorical.py
 hypermodel/features/numerical.py
 hypermodel/hml/__init__.py
+hypermodel/hml/_inference_deployment.py
 hypermodel/hml/decorators.py
 hypermodel/hml/hml_app.py
 hypermodel/hml/hml_container_op.py
 hypermodel/hml/hml_inference_app.py
+hypermodel/hml/hml_inference_deployment.py
 hypermodel/hml/hml_pipeline.py
 hypermodel/hml/hml_pipeline_app.py
 hypermodel/hml/model_container.py
