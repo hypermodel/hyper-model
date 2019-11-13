@@ -1,6 +1,7 @@
 import click
 import json
 import os
+import yaml
 from typing import List, Dict, Optional
 from datetime import datetime
 from kfp import dsl
@@ -226,6 +227,10 @@ class HmlPipeline:
         # op.
         _pipeline_enter(self)
         workflow = Compiler()._create_workflow(self.pipeline_func)
+
+        print("WORKFLOW ->")
+        print(yaml.dump(workflow))
+        print("<- WORKFLOW")
         _pipeline_exit()
 
         return workflow

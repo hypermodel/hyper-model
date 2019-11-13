@@ -75,9 +75,9 @@ class HmlContainerOp(object):
                 logging.info(f"Binding input for {self.name} -> {param_name}: from ({input_op_name})")
 
                 self.arguments.append(f"--{param_name}")
-                self.arguments.append("{{inputs.parameters.%s}}" % param_name)
-                # self.arguments.append("{{tasks.%s.outputs.parameters.default}}" % (input_op_name))
-                p = dsl.PipelineParam(name=param_name, op_name=input_op_name)
+                self.arguments.append("{{inputs.parameters.%s-default-json}}" % input_op_name)
+                # self.arguments.append("{{tasks.%s.outputs.parameters.%s-default-json}}" % (input_op_name, input_op_name))
+                p = dsl.PipelineParam(name=f"default-json", op_name=input_op_name)
             else:
                 # This is a pipeline parameter
                 logging.info(f"Binding input value for {self.name} -> {param_name}: {input_value}")
@@ -92,11 +92,13 @@ class HmlContainerOp(object):
             image=self.pipeline.image_url,
             command=self.pipeline.package_entrypoint,
             arguments=self.arguments,
-            file_outputs={'default': self.pipeline.default_output_path()}
+            file_outputs={'default-json': self.pipeline.default_output_path()},
+
         )
 
         # Set the re-direction of inputs
         self.op.inputs = self.inputs
+        print(f"self.op.outputs: {self.op.outputs}")
 
         # Set the location for the
 
@@ -106,6 +108,9 @@ class HmlContainerOp(object):
         # at this point, we will need for someone else to use this
         # later (e.g. at the Compile step)
         self.cli_command = click.command(name=self.name)(self.func)
+
+        self.with_empty_dir("hml_tmp", "/hml-tmp")
+        self.with_env("HML_TMP", "/hml_tmp")
 
         self.pipeline._add_op(self)
 
