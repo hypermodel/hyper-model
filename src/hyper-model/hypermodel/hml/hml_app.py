@@ -1,4 +1,3 @@
-
 import click
 from typing import Dict
 from kfp import dsl
@@ -12,14 +11,16 @@ from hypermodel.platform.local.services import LocalPlatformServices
 # This is the default `click` entrypoint for kicking off the command line
 
 
-class HmlApp():
-    def __init__(self,
-                 name: str,
-                 platform: str,
-                 image_url: str,
-                 package_entrypoint: str,
-                 inference_port: int = 8000,
-                 k8s_namespace: str = "kubeflow"):
+class HmlApp:
+    def __init__(
+        self,
+        name: str,
+        platform: str,
+        image_url: str,
+        package_entrypoint: str,
+        inference_port: int = 8000,
+        k8s_namespace: str = "kubeflow",
+    ):
         """
         Initialize a new Hml App with the given name, platform ("local" or "GCP") and
         a dictionary of configuration values
@@ -38,8 +39,23 @@ class HmlApp():
         self.image_url = image_url
         self.package_entrypoint = package_entrypoint
 
-        self.pipelines = HmlPipelineApp(name, self.cli_root, self.image_url, self.package_entrypoint)
-        self.inference = HmlInferenceApp(name, self.cli_root, self.image_url, self.package_entrypoint, inference_port, k8s_namespace)
+        self.pipelines = HmlPipelineApp(
+            name=name,
+            services=self.services,
+            cli=self.cli_root,
+            image_url=self.image_url,
+            package_entrypoint=self.package_entrypoint,
+        )
+
+        self.inference = HmlInferenceApp(
+            name=name,
+            services=self.services,
+            cli=self.cli_root,
+            image_url=self.image_url,
+            package_entrypoint=self.package_entrypoint,
+            port=inference_port,
+            k8s_namespace=k8s_namespace,
+        )
         self.models: Dict[str, ModelContainer] = dict()
 
     def register_model(self, name: str, model_container: ModelContainer):
@@ -92,10 +108,9 @@ class HmlApp():
         Returns:
             None
         """
-        context = {
-            "app": self,
-            "services": self.services,
-            "models": self.models
-        }
-        # print(f"HmlApp.start()")
+        context = {"app": self, "services": self.services, "models": self.models}
+
+        # Initialize my pipelines
+        self.pipelines.initialize()
+
         self.cli_root(obj=context, auto_envvar_prefix="HML")

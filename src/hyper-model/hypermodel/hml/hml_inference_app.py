@@ -17,15 +17,19 @@ class HmlInferenceApp:
     """
     The host of the Flask app used for predictions for models
     """
+
     models: dict
 
-    def __init__(self,
-                 name: str,
-                 cli: click.Group,
-                 image_url: str,
-                 package_entrypoint: str,
-                 port,
-                 k8s_namespace):
+    def __init__(
+        self,
+        name: str,
+        services: PlatformServicesBase,
+        cli: click.Group,
+        image_url: str,
+        package_entrypoint: str,
+        port,
+        k8s_namespace,
+    ):
         """
         Create a new `HmlInferenceApp`, listening on the provided port
 
@@ -66,12 +70,13 @@ class HmlInferenceApp:
         self.deploy_callbacks: List[Callable] = []
 
         # Build the HmlInferenceDeployment
-        self.deployment = HmlInferenceDeployment(name=self.name,
-                                                 image_url=image_url,
-                                                 package_entrypoint=package_entrypoint,
-                                                 port=port,
-                                                 k8s_namespace=k8s_namespace
-                                                 )
+        self.deployment = HmlInferenceDeployment(
+            name=self.name,
+            image_url=image_url,
+            package_entrypoint=package_entrypoint,
+            port=port,
+            k8s_namespace=k8s_namespace,
+        )
 
     def register_model(self, model_container: ModelContainer):
         """
@@ -146,16 +151,15 @@ class HmlInferenceApp:
             # This is a create job thanks
             logging.info(f"Creating Inference Deployment: {self.k8s_namespace}.{self.deployment.deployment_name}")
             response = apiV1Beta.create_namespaced_deployment(
-                body=self.deployment.k8s_deployment,
-                namespace=self.k8s_namespace)
+                body=self.deployment.k8s_deployment, namespace=self.k8s_namespace
+            )
             logging.info(f"Created Inference Deployment: {self.k8s_namespace}.{self.deployment.deployment_name}!")
         else:
             # This is a Patch/Update job thanks
             logging.info(f"Patching Inference Deployment: {self.k8s_namespace}.{self.deployment.deployment_name}")
             response = apiV1Beta.patch_namespaced_deployment(
-                name=self.deployment.deployment_name,
-                body=self.deployment.k8s_deployment,
-                namespace=self.k8s_namespace)
+                name=self.deployment.deployment_name, body=self.deployment.k8s_deployment, namespace=self.k8s_namespace
+            )
             logging.info(f"Patching Inference Deployment: {self.k8s_namespace}.{self.deployment.deployment_name}!")
 
     def apply_service(self, k8s_service: client.V1Service):
@@ -167,19 +171,26 @@ class HmlInferenceApp:
         existing = [s for s in services.items if s.metadata.name == k8s_service.metadata.name]
         if len(existing) == 0:
             # This is a create job thanks
-            logging.info(f"Creating Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}")
-            response = apiV1.create_namespaced_service(
-                body=self.deployment.k8s_service,
-                namespace=self.k8s_namespace)
-            logging.info(f"Created Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}!")
+            logging.info(
+                f"Creating Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}"
+            )
+            response = apiV1.create_namespaced_service(body=self.deployment.k8s_service, namespace=self.k8s_namespace)
+            logging.info(
+                f"Created Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}!"
+            )
         else:
             # This is a Patch/Update job thanks
-            logging.info(f"Patching Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}")
+            logging.info(
+                f"Patching Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}"
+            )
             response = apiV1.patch_namespaced_service(
                 name=self.deployment.k8s_service.metadata.name,
                 body=self.deployment.k8s_service,
-                namespace=self.k8s_namespace)
-            logging.info(f"Patching Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}!")
+                namespace=self.k8s_namespace,
+            )
+            logging.info(
+                f"Patching Inference Service: {self.k8s_namespace}.{self.deployment.k8s_service.metadata.name}!"
+            )
 
     def start_dev(self):
         """
@@ -205,4 +216,4 @@ class HmlInferenceApp:
 
     def deploy(self, environment):
         pass
-        
+

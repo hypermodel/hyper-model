@@ -1,6 +1,8 @@
 import logging
 import click
 import json
+import os
+import socket
 from typing import Dict, List, Optional, Any
 from kubernetes.client.models import V1EnvVar
 from kubernetes import client as k8s_client
@@ -33,7 +35,7 @@ def _pipeline_exit():
 
 def _deserialize_option(ctx, param, value):
 
-    logging.info(f"HmlContainerOp deserializing {param}: {value}")
+    logging.info(f"_deserialize_option for {param.name}: {value}")
     if value.startswith("{"):
         return json.loads(value)
     return value
@@ -63,6 +65,7 @@ class HmlContainerOp(object):
             logging.error("Unable to create HmlContainerOp, the `_pipeline_enter` function has not been called")
 
         self.pipeline = _current_pipeline
+        self.services = self.pipeline.services
 
         # Create my list of inputs
         self.inputs: List[PipelineParam] = []
@@ -119,7 +122,33 @@ class HmlContainerOp(object):
         self.with_empty_dir("hml-tmp", "/hml-tmp")
         self.with_env("HML_TMP", "/hml-tmp")
 
+        self.with_env("KF_WORKFLOW_ID", "{{workflow.uid}}")
+        self.with_env("KF_WORKFLOW_NAME", "{{workflow.name}}")
+        self.with_env("KF_POD_NAME", "{{pod.name}}")
+        self.with_env("KUBEFLOW_PIPELINE_NAME", self.name)
+
         self.pipeline._add_op(self)
+
+    def workflow_id(self):
+        """
+        Get the current WorkflowId for the execution of this pipeline.  This will 
+        be consistent across Op executions, but different across runs.
+        """
+
+        if "KF_WORKFLOW_ID" not in os.environ:
+            return "wfid-local"
+
+        return "wfid-" + os.environ["KF_WORKFLOW_ID"]
+
+    def execution_id(self):
+        workflow_id = self.get_workflow_id()
+
+        if "KF_POD_NAME" in os.environ:
+            pod_name = os.environ["KF_POD_NAME"]
+        else:
+            pod_name = socket.gethostname()
+
+        return f"{workflow_id}-{pod_name}"
 
     def _build_command(self):
         wrapped = click.command(name=self.name)(self.invoke)
@@ -137,7 +166,15 @@ class HmlContainerOp(object):
             The result of the container operation (e.g. return value), including
             dumping the result as JSON to the pipelines `default_output_path()`.
         """
+
+        kwargs["op_context"] = self
         ret = self.func(**kwargs)
+
+        # Log all my environment variables for debugging purposes.
+        # ToDo: Delete this!
+        logging.info(f"Executing: {self.pipeline.name}.{self.name}, env:")
+        for k in os.environ:
+            logging.info(f"\t{k}")
 
         output_path = self.pipeline.default_output_path()
         if ret is None:
@@ -249,3 +286,4 @@ class HmlContainerOp(object):
         self.op.add_volume(k8s_client.V1Volume(name=name, empty_dir=k8s_client.V1EmptyDirVolumeSource()))
         self.op.add_volume_mount(k8s_client.V1VolumeMount(name=name, mount_path=mount_path))
         return self
+

@@ -10,6 +10,7 @@ from kfp import Client
 from kfp.compiler import Compiler
 from typing import List, Dict, Callable, Optional
 from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
+from hypermodel.platform.abstract.services import PlatformServicesBase
 from hypermodel.kubeflow.kubeflow_client import KubeflowClient
 from hypermodel.kubeflow.deploy import deploy_pipeline
 
@@ -19,11 +20,13 @@ class HmlPipeline:
         self,
         cli: click.Group,
         pipeline_func: Callable,
+        services: PlatformServicesBase,
         image_url: str,
         package_entrypoint: str,
         op_builders: List[Callable[[HmlContainerOp], HmlContainerOp]],
     ):
         self.name = pipeline_func.__name__
+        self.services = services
         self.pipeline_func = pipeline_func
         self.kubeflow_pipeline = dsl.pipeline(pipeline_func, pipeline_func.__name__)
 
@@ -51,13 +54,18 @@ class HmlPipeline:
         # Create a command to execute the whole pipeline
         self.cli_all = click.command(name="run-all")(self.run_all)
 
-        self.deploy_dev = self.apply_deploy_options(click.command(name="deploy-dev")(self._deploy_dev))
-        self.deploy_prod = self.apply_deploy_options(click.command(name="deploy-prod")(self._deploy_prod))
+        self.deploy_dev = self._apply_deploy_options(click.command(name="deploy-dev")(self._deploy_dev))
+        self.deploy_prod = self._apply_deploy_options(click.command(name="deploy-prod")(self._deploy_prod))
 
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
         self.cli_pipeline.add_command(self.deploy_prod)
 
+    def _build_dag(self):
+        """
+            Initialize the pipeline and calculate the DAG for the workflow.  We seperate this
+            from the __init__ method so that we can 
+        """
         self.workflow = self._get_workflow()
         self.dag = self.get_dag()
         self.tasks = self.dag["tasks"]
@@ -67,7 +75,7 @@ class HmlPipeline:
             task_name = t["name"]
             self.task_map[task_name] = t
 
-    def apply_deploy_options(self, func):
+    def _apply_deploy_options(self, func):
         """
         Bind additional command line arguments for the deployment step, including:
             --host: Endpoint of the KFP API service to use

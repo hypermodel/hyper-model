@@ -7,6 +7,7 @@ import kfp.dsl as dsl
 
 from hypermodel.hml.hml_pipeline import HmlPipeline
 from hypermodel.hml.hml_container_op import HmlContainerOp
+from hypermodel.platform.abstract.services import PlatformServicesBase
 
 
 @click.group(name="pipelines")
@@ -16,12 +17,11 @@ def cli_pipeline_group(context):
 
 
 class HmlPipelineApp:
-    def __init__(self,
-                 name: str,
-                 cli: click.Group,
-                 image_url: str,
-                 package_entrypoint: str):
+    def __init__(
+        self, name: str, services: PlatformServicesBase, cli: click.Group, image_url: str, package_entrypoint: str
+    ):
         self.name = name
+        self.services = services
         self.cli_root = cli
         self.cli_root.add_command(cli_pipeline_group)
 
@@ -50,13 +50,25 @@ class HmlPipelineApp:
         Returns:
             Nonw
         """
-        pipe = HmlPipeline(cli_pipeline_group, pipeline_func, self.image_url, self.package_entrypoint, self.deploy_callbacks)
+        pipe = HmlPipeline(
+            cli=cli_pipeline_group,
+            pipeline_func=pipeline_func,
+            services=self.services,
+            image_url=self.image_url,
+            package_entrypoint=self.package_entrypoint,
+            op_builders=self.deploy_callbacks,
+        )
         pipe.with_cron(cron)
         pipe.with_experiment(experiment)
 
         self.pipelines[pipe.name] = pipe
 
         return pipe
+
+    def initialize(self):
+        for k in self.pipelines:
+            pipe = self.pipelines[k]
+            pipe._build_dag()
 
     def on_deploy(self, func: Callable[[HmlContainerOp], HmlContainerOp]):
         """
