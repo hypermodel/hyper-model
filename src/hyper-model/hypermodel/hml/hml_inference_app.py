@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Callable
 from kubernetes import client, config
 from flask import Flask, send_file
 from waitress import serve
-from hypermodel.hml.model_container import ModelContainer
+# from hypermodel.hml.model_container import ModelContainer
 from hypermodel.hml.prediction.routes.health import bind_health_routes
 from hypermodel.platform.abstract.services import PlatformServicesBase
 from hypermodel.hml.hml_inference_deployment import HmlInferenceDeployment
@@ -89,21 +89,21 @@ class HmlInferenceApp:
             k8s_namespace=k8s_namespace,
         )
 
-    def register_model(self, model_container: ModelContainer):
-        """
-        Load the Model (its JobLib and Summary statistics) using an 
-        empy ModelContainer object, and bind it to our internal dictionary
-        of models.
+    # def register_model(self, model_container: ModelContainer):
+    #     """
+    #     Load the Model (its JobLib and Summary statistics) using an
+    #     empy ModelContainer object, and bind it to our internal dictionary
+    #     of models.
 
-        Args:
-            model_container (ModelContainer): The container wrapping the model
+    #     Args:
+    #         model_container (ModelContainer): The container wrapping the model
 
-        Returns:
-            The model container passed in, having been loaded.
+    #     Returns:
+    #         The model container passed in, having been loaded.
 
-        """
-        self.models[model_container.name] = model_container
-        return model_container
+    #     """
+    #     self.models[model_container.name] = model_container
+    #     return model_container
 
     def on_init(self, func: Callable):
         self.init_callbacks.append(func)

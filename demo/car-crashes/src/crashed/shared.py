@@ -9,53 +9,35 @@ from hypermodel.features import one_hot_encode
 from hypermodel.platform.gcp.services import GooglePlatformServices
 
 
-BQ_TABLE_TRAINING = "crashes_training"
-BQ_TABLE_TEST = "crashes_test"
-
 MODEL_NAME = "crashed-xgb"
 
+FEATURES_NUMERIC: List[str] = [
+    "inj_or_fatal",
+    "fatality",
+    "males",
+    "females",
+    "driver",
+    "pedestrian",
+    "old_driver",
+    "young_driver",
+    "unlicencsed",
+    "heavyvehicle",
+    "passengervehicle",
+    "motorcycle"
+]
 
-def crashed_model_container(app:  hml.HmlApp):
-    """
-        This is where we define what our model container looks like which helps
-        us to track features / targets in the one place
-    """
-    numeric_features: List[str] = [
-        "inj_or_fatal",
-        "fatality",
-        "males",
-        "females",
-        "driver",
-        "pedestrian",
-        "old_driver",
-        "young_driver",
-        "unlicencsed",
-        "heavyvehicle",
-        "passengervehicle",
-        "motorcycle",
-    ]
+FEATURES_CATEGORICAL: List[str] = [
+    "accident_time",
+    "accident_type",
+    "day_of_week",
+    "dca_code",
+    "hit_run_flag",
+    "light_condition",
+    "road_geometry",
+    "speed_zone"
+]
 
-    categorical_features: List[str] = [
-        "accident_time",
-        "accident_type",
-        "day_of_week",
-        "dca_code",
-        "hit_run_flag",
-        "light_condition",
-        "road_geometry",
-        "speed_zone",
-    ]
-
-    model_container = hml.ModelContainer(
-        name=MODEL_NAME,
-        project_name="demo-crashed",
-        features_numeric=numeric_features,
-        features_categorical=categorical_features,
-        target="alcohol_related",
-        services=app.services
-    )
-    return model_container
-
+TARGET = "alcohol_related"
 
 
 def build_feature_matrix(model_container, data_frame: pd.DataFrame, throw_on_missing=False):
@@ -81,7 +63,7 @@ def build_feature_matrix(model_container, data_frame: pd.DataFrame, throw_on_mis
 
 # Lets just create a dict of default features so that we dont have to make
 # the user specify a ton of parameters
-default_features: Dict[str,str] = {
+default_features: Dict[str, str] = {
     "inj_or_fatal": "1",
     "fatality": "1",
     "males": "1",

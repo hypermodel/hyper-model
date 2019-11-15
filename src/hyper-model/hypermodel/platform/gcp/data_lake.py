@@ -1,6 +1,8 @@
 import pandas as pd
 import logging
 import os
+import os
+import uuid
 from google.cloud import storage
 from hypermodel.platform.gcp.config import GooglePlatformConfig
 from hypermodel.platform.abstract.data_lake import DataLakeBase
@@ -12,11 +14,8 @@ class DataLake(DataLakeBase):
     def __init__(self, config: GooglePlatformConfig):
         self.config = config
 
-    def upload(self, bucket_path: str, local_path: str, bucket_name: str = None) -> bool:
+    def upload(self, bucket_name: str, bucket_path: str, local_path: str) -> str:
         storage_client = storage.Client()
-
-        if bucket_name is None:
-            bucket_name = self.config.lake_bucket
 
         bucket = storage_client.get_bucket(bucket_name)
 
@@ -28,13 +27,10 @@ class DataLake(DataLakeBase):
         logging.info(f"DataLake (GCP): Uploading {local_path} -> gs://{self.config.lake_bucket}/{full_path}/ ...")
         blob.upload_from_filename(local_path)
 
-        return True
+        return bucket_path
 
-    def upload_string(self, bucket_path: str, string: str, bucket_name: str = None) -> bool:
+    def upload_string(self, bucket_name: str, bucket_path: str, string: str) -> str:
         storage_client = storage.Client()
-
-        if bucket_name is None:
-            bucket_name = self.config.lake_bucket
 
         bucket = storage_client.get_bucket(bucket_name)
 
@@ -45,9 +41,21 @@ class DataLake(DataLakeBase):
         logging.info(f"DataLake (GCP): Uploading string -> gs://{self.config.lake_bucket}/{full_path}/ ...")
         blob.upload_from_string(string)
 
-        pass
+        return bucket_path
 
-    def download(self, bucket_path: str, destination_local_path: str, bucket_name: str = None) -> bool:
+    def upload_dataframe(self, bucket_name: str, bucket_path: str, dataframe: pd.DataFrame) -> str:
+
+        filename = uuid.uuid4()
+        tmp_path = os.path.join("/tmp/", f"{filename}.csv")
+
+        df = pd.to_csv(tmp_path)
+        self.upload(bucket_name, bucket_path, tmp_path)
+
+        os.remove(tmp_path)
+
+        return bucket_path
+
+    def download(self, bucket_name: str, bucket_path: str, destination_local_path: str) -> bool:
         storage_client = storage.Client()
 
         if bucket_name is None:
@@ -61,11 +69,8 @@ class DataLake(DataLakeBase):
         blob.download_to_filename(destination_local_path)
         return True
 
-    def download_string(self, bucket_path: str, bucket_name: str = None) -> bool:
+    def download_string(self, bucket_name: str, bucket_path: str) -> str:
         storage_client = storage.Client()
-
-        if bucket_name is None:
-            bucket_name = self.config.lake_bucket
 
         logging.info(f"DataLake (GCP): downloading gs://{bucket_name}/{bucket_path} -> string")
 
@@ -78,3 +83,15 @@ class DataLake(DataLakeBase):
             return string
         finally:
             return None
+
+    def download_csv(self, bucket_name: str, bucket_path: str) -> pd.DataFrame:
+
+        filename = uuid.uuid4()
+        tmp_path = os.path.join("/tmp/", f"{filename}.csv")
+        self.download(bucket_path, tmp_path, bucket_name=bucket_name)
+
+        df = pd.read_csv(tmp_path)
+
+        os.remove(tmp_path)
+
+        return df

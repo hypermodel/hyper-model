@@ -52,7 +52,7 @@ def main():
         logging.info(f"adjust_greeting (package: {pkg.name} / {pkg.op.name})")
         logging.info(f"start.adjust_dict: {greeting_dict}")
         greeting_dict["testing"] = "something new"
-        pkg.add_artifact("adjust_greeting", "nah.txt")
+        pkg.link_artifact("adjust_greeting", "nah.txt")
         return greeting_dict
 
     @hml.deploy_op(app.pipelines)

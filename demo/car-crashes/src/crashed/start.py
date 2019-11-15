@@ -7,6 +7,9 @@ from flask import request
 # Import my local modules
 from crashed import shared, pipeline, inference
 
+from crashed.shared import FEATURES_NUMERIC, FEATURES_CATEGORICAL, TARGET
+from crashed.shared import MODEL_NAME
+
 
 def main():
     # Create a reference to our "App" object which maintains state
@@ -14,7 +17,7 @@ def main():
     if "DOCKERHUB_IMAGE" in os.environ and "CI_COMMIT_SHA" in os.environ:
         image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
     else:
-        image_url = None
+        image_url = "growingdata/demo-crashed:latest"
 
     app = hml.HmlApp(
         name="car-crashes",
@@ -25,7 +28,7 @@ def main():
         k8s_namespace="kubeflow",
     )
     # Set up Environment Varialbes that will apply to all containers...
-    app.with_envs(
+    app.with_envs({
         "GCP_PROJECT": "grwdt-dev",
         "GCP_ZONE": "australia-southeast1-a",
         "K8S_CLUSTER": "kf-crashed",
@@ -35,15 +38,7 @@ def main():
         "LAKE_PATH": "hypermodel/demo/car-crashes",
         "WAREHOUSE_DATASET": "crashed",
         "WAREHOUSE_LOCATION": "australia-southeast1"
-    )
-
-    # Create a reference to our ModelContainer, which tells us about
-    # the features of the model, where its current version lives and
-    # other metadata related to the model.
-    crashed_model = shared.crashed_model_container(app)
-
-    # Tell our application about the model we just built a reference for
-    app.register_model(shared.MODEL_NAME, crashed_model)
+    })
 
     @hml.pipeline(app.pipelines, cron="0 0 * * *", experiment="demos")
     def crashed_pipeline(message: str = "Hello tez!"):
@@ -51,19 +46,45 @@ def main():
         This is where we define the workflow for this pipeline purely
         with method invocations.
         """
-        # message = "Hello tez!"
 
-        adjusted_message = create_training_op = pipeline.create_training(message=message)
-        create_test_op = pipeline.create_test(adjusted_message=adjusted_message)
-        train_model_op = pipeline.train_model()
+        columns = ",".join(FEATURES_NUMERIC + FEATURES_CATEGORICAL + [TARGET])
 
-        # Set up the dependencies for this model
-        (train_model_op.after(create_training_op).after(create_test_op))
+        training_sql = f"""
+            SELECT {columns}
+            FROM crashed.crashes_raw
+            WHERE accident_date BETWEEN '2013-01-01' AND '2017-12-31'
+        """
+
+        validation_sql = f"""
+            SELECT {columns}
+            FROM crashed.crashes_raw
+            WHERE accident_date > '2018-01-01'
+        """
+
+        bucket = "grwdt-dev-lake"
+
+        training_table = pipeline.select_into(training_sql, "crashed", "crashes_training")
+        training_csv = pipeline.export_csv(bucket, "crashed", f"{training_table}.csv")
+        features_artifact_cat = pipeline.analyze_categorical_features(bucket, training_csv, "encodings.json", FEATURES_CATEGORICAL)
+        features_artifact_num = pipeline.analyze_numeric_features(bucket, training_csv, "distributions.json", FEATURES_NUMERIC)
+
+        matrix_path = pipeline.build_matrix(bucket, training_csv, features_artifact_cat, FEATURES_NUMERIC, "final.csv")
+
+        model_path = pipeline.train_model(matrix_path, TARGET, f"{MODEL_NAME}.joblib")
+
+        # validation_ref = pipeline.select_into(training_sql, "crashed", "crashes_validation")
+
+        # adjusted_message = create_training_op = pipeline.create_training(message=message)
+        # create_test_op = pipeline.create_test(adjusted_message=adjusted_message)
+        # train_model_op = pipeline.train_model()
+
+        # # Set up the dependencies for this model
+        # (train_model_op.after(create_training_op).after(create_test_op))
 
     @hml.deploy_op(app.pipelines)
     def op_configurator(op: hml.HmlContainerOp):
         """
-        Configure our Pipeline Operation Pods with the right secrets and 
+        Configure our Pipeline Operation Pods with the right secrets and
         environment variables so that it can work with our cloud
         provider's services
         """
@@ -105,7 +126,7 @@ def main():
 
         (
             deployment.with_gcp_auth("svcacc-tez-kf")
-            .with_empty_dir("tmp", "/temp")
+            .with_empty_dir("tmp", "/tmp")
             .with_empty_dir("artifacts", "/artifacts")
         )
         pass

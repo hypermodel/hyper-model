@@ -5,7 +5,7 @@ from typing import Dict
 from kfp import dsl
 from hypermodel.hml.hml_pipeline_app import HmlPipelineApp
 from hypermodel.hml.hml_inference_app import HmlInferenceApp
-from hypermodel.hml.model_container import ModelContainer
+# from hypermodel.hml.model_container import ModelContainer
 from hypermodel.platform.gcp.services import GooglePlatformServices
 from hypermodel.platform.local.services import LocalPlatformServices
 
@@ -66,7 +66,6 @@ class HmlApp:
             k8s_namespace=k8s_namespace,
             envs=self.app_env
         )
-        self.models: Dict[str, ModelContainer] = dict()
 
     def with_envs(self, envs):
         for name in envs:
@@ -77,35 +76,6 @@ class HmlApp:
         os.environ[name] = value
         self.app_env[name] = value
         return self
-
-    def register_model(self, name: str, model_container: ModelContainer):
-        """
-        Registers a `ModelContainer` with the application, such that it can be referenced
-        in both the Training (Pipeline) and Inference phases
-
-        Args:
-            name (str): The name of the Model
-            model_container (ModelContainer): The ModelContainer object containing the models
-                meta data
-
-        Returns:
-            None
-        """
-        self.models[model_container.name] = model_container
-        self.inference.register_model(model_container)
-
-    def get_model(self, model_name: str) -> ModelContainer:
-        """
-        Get the registered model with the given model_name
-
-        Args:
-            model_name (str): The name of the model to get
-
-        Returns:
-            The model with the given name, or throws a KeyNotFound exception.
-        """
-
-        return self.models[model_name]
 
     @click.group()
     @click.pass_context

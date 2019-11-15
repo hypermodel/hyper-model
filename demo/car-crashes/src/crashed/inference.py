@@ -9,10 +9,8 @@ from crashed import shared
 
 
 def predict_alcohol(
-    inference_app: hml.HmlInferenceApp, 
-    model_container: hml.ModelContainer,
-    params: Dict[str,str]):
-
+        inference_app: hml.HmlInferenceApp,
+        params: Dict[str, str]):
 
     logging.info("predict_alcohol")
     # Lets not make the user specify every possible feature
@@ -25,10 +23,10 @@ def predict_alcohol(
     features_df = pd.DataFrame([params])
 
     try:
-        # Now we turn it into a matrix, ready for some XTREME boosting
-        feature_matrix = shared.build_feature_matrix(
-            model_container, features_df, throw_on_missing=True
-        )
+        # # Now we turn it into a matrix, ready for some XTREME boosting
+        # feature_matrix = shared.build_feature_matrix(
+        #     model_container, features_df, throw_on_missing=True
+        # )
 
         # Ask the model to do the predictions
         predictions = [v for v in model_container.model.predict(feature_matrix)]
@@ -42,5 +40,3 @@ def predict_alcohol(
         )
     except Exception as ex:
         return jsonify({"success": False, "error": ex.args[0]})
-        
-

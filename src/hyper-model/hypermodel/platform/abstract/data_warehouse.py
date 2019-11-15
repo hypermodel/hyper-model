@@ -4,10 +4,15 @@ from typing import List
 
 from hypermodel.model.table_schema import SqlTable, SqlColumn
 
-class DataWarehouseBase(ABC): # extends Abstract Base class
+
+class DataWarehouseBase(ABC):  # extends Abstract Base class
 
     @abstractmethod
     def import_csv(self, bucket_path: str, dataset: str, table: str) -> bool:
+        pass
+
+    @abstractmethod
+    def export_csv(self, bucket_path: str, dataset: str, table: str) -> bool:
         pass
 
     @abstractmethod

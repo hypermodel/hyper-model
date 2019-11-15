@@ -1,7 +1,7 @@
 import click
 import json
-import json
-from typing import Dict
+import pandas as pd
+from typing import Dict, Any
 from kfp import dsl
 from hypermodel.platform.abstract.services import PlatformServicesBase
 from datetime import datetime
@@ -34,6 +34,13 @@ class HmlPackage:
         self.pipeline = op.pipeline
         self.services = services
 
+    def artifact_path(self, artifact_name: str):
+        """
+        Get the path to where we are saving artifacts in the DataLake
+        """
+        workflow_id = self.op.workflow_id()
+        return f"{workflow_id}/artifacts/{artifact_name}"
+
     def package_path(self):
         """
         Get the path to the Package in the DataLake
@@ -41,7 +48,38 @@ class HmlPackage:
         workflow_id = self.op.workflow_id()
         return f"{workflow_id}/hml-package.json"
 
-    def add_artifact(self, name: str, storage_path: str):
+    def add_artifact_json(self, name: str, obj: Any):
+        # Lets save the artifact as JSON to the data lake
+        artifact_path = self.artifact_path(name)
+        object_json = json.dumps(obj)
+        self.services.lake.upload_string(artifact_path, object_json)
+
+        # Then lets update our reference artifact (via the link)
+        self.link_artifact(name, artifact_path)
+
+        return artifact_path
+
+    def add_artifact_file(self, name: str, file_path: Any):
+        # Lets save the artifact as JSON to the data lake
+        artifact_path = self.artifact_path(name)
+        self.services.lake.upload(self.services.config.lake_bucket, artifact_path, file_path)
+
+        # Then lets update our reference artifact (via the link)
+        self.link_artifact(name, artifact_path)
+
+        return artifact_path
+
+    def add_artifact_dataframe(self, name: str, dataframe: pd.DataFrame):
+        # Lets save the artifact as JSON to the data lake
+        artifact_path = self.artifact_path(name)
+        self.services.lake.upload_dataframe(self.services.config.lake_bucket, artifact_path, dataframe)
+
+        # Then lets update our reference artifact (via the link)
+        self.link_artifact(name, artifact_path)
+
+        return artifact_path
+
+    def link_artifact(self, name: str, storage_path: str):
         # We don't store any state as a part of this object, all operations
         # are designed to minimize the chance of mid-air collisions
         package = self.get()

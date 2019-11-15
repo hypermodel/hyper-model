@@ -6,7 +6,7 @@ from typing import List
 from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud.bigquery.table import Table, TableReference
-from google.cloud.bigquery.job import LoadJobConfig, QueryJobConfig, CreateDisposition, WriteDisposition, _AsyncJob
+from google.cloud.bigquery.job import LoadJobConfig, ExtractJobConfig, QueryJobConfig, CreateDisposition, WriteDisposition
 from google.cloud.bigquery.schema import SchemaField
 # from google.cloud import bigquery_storage_v1beta1
 from hypermodel.platform.gcp.config import GooglePlatformConfig
@@ -33,6 +33,22 @@ class DataWarehouse(DataWarehouseBase):
         result = load_job.result()
 
         logging.info(f"DataWarehouse.import_csv {bucket_path} to {dataset}.{table} Complete!")
+
+        return True
+
+    def export_csv(self, bucket_path: str, dataset: str, table: str) -> bool:
+        logging.info(f"DataWarehouse.export_csv {bucket_path} to {dataset}.{table} ...")
+        client = self._get_client()
+
+        to_export = TableReference(dataset, table)
+        config = ExtractJobConfig()
+        config.field_delimiter = "\t"
+        config.destination_format = bigquery.DestinationFormat.CSV
+
+        extract_job = client.extract_table(to_export, bucket_path, job_config=config)
+        result = extract_job.result()
+
+        logging.info(f"DataWarehouse.export_csv {bucket_path} to {dataset}.{table} Complete!")
 
         return True
 
