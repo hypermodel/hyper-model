@@ -1,5 +1,5 @@
 import pandas as pd
-from abc import ABC, abstractproperty
+from abc import ABC, abstractproperty, abstractmethod
 from typing import List
 
 from hypermodel.platform.abstract.data_warehouse import DataWarehouseBase
@@ -7,7 +7,11 @@ from hypermodel.platform.abstract.data_lake import DataLakeBase
 from hypermodel.platform.abstract.git_host import GitHostBase
 
 
-class PlatformServicesBase(ABC): # extends Abstract Base class
+class PlatformServicesBase(ABC):  # extends Abstract Base class
+
+    @abstractmethod
+    def initialize(self):
+        pass
 
     @abstractproperty
     def lake(self) -> DataLakeBase:
@@ -20,7 +24,3 @@ class PlatformServicesBase(ABC): # extends Abstract Base class
     @abstractproperty
     def git(self) -> GitHostBase:
         pass
-
-
-
-    

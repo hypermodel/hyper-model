@@ -24,6 +24,18 @@ def main():
         inference_port=8000,
         k8s_namespace="kubeflow",
     )
+    # Set up Environment Varialbes that will apply to all containers...
+    app.with_envs(
+        "GCP_PROJECT": "grwdt-dev",
+        "GCP_ZONE": "australia-southeast1-a",
+        "K8S_CLUSTER": "kf-crashed",
+        "K8S_NAMESPACE": "kubeflow",
+
+        "LAKE_BUCKET": "grwdt-dev-lake",
+        "LAKE_PATH": "hypermodel/demo/car-crashes",
+        "WAREHOUSE_DATASET": "crashed",
+        "WAREHOUSE_LOCATION": "australia-southeast1"
+    )
 
     # Create a reference to our ModelContainer, which tells us about
     # the features of the model, where its current version lives and
@@ -60,16 +72,6 @@ def main():
             op
             # Service account for authentication / authorisation
             .with_gcp_auth("svcacc-tez-kf")
-            .with_env("GCP_PROJECT", "grwdt-dev")
-            .with_env("GCP_ZONE", "australia-southeast1-a")
-            .with_env("K8S_NAMESPACE", "kubeflow")
-            .with_env("K8S_CLUSTER", "kf-crashed")
-            # Data Lake Config
-            .with_env("LAKE_BUCKET", "grwdt-dev-lake")
-            .with_env("LAKE_PATH", "crashed")
-            # Data Warehouse Config
-            .with_env("WAREHOUSE_DATASET", "crashed")
-            .with_env("WAREHOUSE_LOCATION", "australia-southeast1")
             # Track where we are going to write our artifacts
             .with_empty_dir("artifacts", "/artifacts")
             # Pass through environment variables from my CI/CD Environment

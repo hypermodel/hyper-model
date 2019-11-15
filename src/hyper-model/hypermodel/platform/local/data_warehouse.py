@@ -205,4 +205,4 @@ def test_dry_run():
         logging.debug(row)
 
 
-unit_test()
+# unit_test()

@@ -1,0 +1,3 @@
+[console_scripts]
+simples = simple_pipeline.start:main
+

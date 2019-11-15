@@ -1,3 +1,0 @@
-[console_scripts]
-simple-pipeline = simple_pipeline.start:main
-

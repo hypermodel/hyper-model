@@ -11,7 +11,7 @@ RUN pip install \
     pandas \
     tqdm
 
-ADD ./demo/simple-pipeline /pkg_src/demo-simple-pipeline
+ADD ./test_packages/simple-pipeline /pkg_src/demo-simple-pipeline
 ADD ./src/hyper-model /pkg_src/hyper-model
 
 WORKDIR /pkg_src/hyper-model

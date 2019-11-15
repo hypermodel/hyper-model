@@ -27,8 +27,9 @@ class HmlInferenceApp:
         cli: click.Group,
         image_url: str,
         package_entrypoint: str,
-        port,
-        k8s_namespace,
+        port: int,
+        k8s_namespace: str,
+        envs: Dict[str, str]
     ):
         """
         Create a new `HmlInferenceApp`, listening on the provided port
@@ -41,6 +42,16 @@ class HmlInferenceApp:
             port (int): The port to listen in on (default: 8000)
             namespace (str): The k8s namespace to deploy to
         """
+
+        if cli is None:
+            raise(TypeError("Parameter: `cli` must be supplied"))
+        if services is None:
+            raise(TypeError("Parameter: `services` must be supplied"))
+        if image_url is None or image_url == "":
+            raise(TypeError("Parameter: `image_url` must be supplied"))
+        if package_entrypoint is None or package_entrypoint == "":
+            raise(TypeError("Parameter: `package_entrypoint` must be supplied"))
+
         self.models: Dict[str, ModelContainer] = dict()
         self.name = f"{name}-inference"
         self.flask = Flask(name)
@@ -216,4 +227,3 @@ class HmlInferenceApp:
 
     def deploy(self, environment):
         pass
-

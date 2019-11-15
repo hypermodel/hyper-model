@@ -1,4 +1,6 @@
 import click
+import logging
+import os
 from typing import Dict
 from kfp import dsl
 from hypermodel.hml.hml_pipeline_app import HmlPipelineApp
@@ -32,12 +34,18 @@ class HmlApp:
             inference_port (int): The port the InferenceApp should run on 
 
         """
+        logging.info("HmlApp.__init__()")
+
         self.name = name
         self.platform = platform
+
         self.services = self._get_services(platform)
 
         self.image_url = image_url
         self.package_entrypoint = package_entrypoint
+
+        # Environment variables bound at the App level
+        self.app_env: Dict[str, str] = dict()
 
         self.pipelines = HmlPipelineApp(
             name=name,
@@ -45,6 +53,7 @@ class HmlApp:
             cli=self.cli_root,
             image_url=self.image_url,
             package_entrypoint=self.package_entrypoint,
+            envs=self.app_env
         )
 
         self.inference = HmlInferenceApp(
@@ -55,8 +64,19 @@ class HmlApp:
             package_entrypoint=self.package_entrypoint,
             port=inference_port,
             k8s_namespace=k8s_namespace,
+            envs=self.app_env
         )
         self.models: Dict[str, ModelContainer] = dict()
+
+    def with_envs(self, envs):
+        for name in envs:
+            os.environ[name] = envs[name]
+            self.app_env[name] = envs[name]
+
+    def with_env(self, name, value):
+        os.environ[name] = value
+        self.app_env[name] = value
+        return self
 
     def register_model(self, name: str, model_container: ModelContainer):
         """
@@ -96,10 +116,14 @@ class HmlApp:
         """
         Gets the service
         """
-        if platform == "GCP":
+        platform = platform.lower()
+
+        if platform == "gcp":
             return GooglePlatformServices()
         if platform == "local":
             return LocalPlatformServices()
+
+        raise(ValueError(f"Unknown Platform: {platform}.  Available options are 'gcp', 'local'"))
 
     def start(self):
         """
@@ -108,7 +132,13 @@ class HmlApp:
         Returns:
             None
         """
+
+        logging.info("HmlApp.start()")
+
         context = {"app": self, "services": self.services, "models": self.models}
+
+        # Initialize my services (laod config)
+        self.services.initialize()
 
         # Initialize my pipelines
         self.pipelines.initialize()

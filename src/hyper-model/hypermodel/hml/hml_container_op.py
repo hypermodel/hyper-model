@@ -9,6 +9,8 @@ from kubernetes import client as k8s_client
 from kfp import dsl
 from kfp.gcp import use_gcp_secret
 from hypermodel.utilities.k8s import sanitize_k8s_name
+from hypermodel.platform.abstract.services import PlatformServicesBase
+from hypermodel.hml.hml_package import HmlPackage
 
 # from hypermodel.hml.hml_pipeline import HmlPipeline
 
@@ -67,11 +69,41 @@ class HmlContainerOp(object):
         self.pipeline = _current_pipeline
         self.services = self.pipeline.services
 
+        # Bind the input & output objects
+        self._bind_inputs_outputs()
+
+        self.op = dsl.ContainerOp(
+            name=f"{self.name}",
+            image=self.pipeline.image_url,
+            command=self.pipeline.package_entrypoint,
+            arguments=self.arguments,
+            file_outputs={"default-json": self.pipeline.default_output_path()},
+        )
+
+        # Set the re-direction of inputs
+        self.op.inputs = self.inputs
+
+        # Set the location for the
+        self.op.hml_op = self
+
+        # Create our command, but it won't be bound to a group
+        # at this point, we will need for someone else to use this
+        # later (e.g. at the Compile step)
+        # self.cli_command = click.command(name=self.name)(self.invoke)
+        self.cli_command = self._build_command()
+
+        self.with_empty_dir("hml-tmp", "/hml-tmp")
+
+        self._container_environment()
+
+        self.pipeline._add_op(self)
+
+    def _bind_inputs_outputs(self):
         # Create my list of inputs
         self.inputs: List[PipelineParam] = []
         self.arguments: List[str] = ["pipelines", self.pipeline.name, self.name]
-        for param_name in kwargs:
-            input_value = kwargs[param_name]
+        for param_name in self.kwargs:
+            input_value = self.kwargs[param_name]
             input_type = type(input_value)
             if isinstance(input_value, dsl.PipelineParam):
                 # This is a hardcoded value
@@ -92,42 +124,21 @@ class HmlContainerOp(object):
             else:
                 # This is a pipeline parameter
                 logging.info(f"Binding input value for {self.name} -> {param_name}: {input_value}")
-                p = dsl.PipelineParam(name=param_name, value=kwargs[param_name])
+                p = dsl.PipelineParam(name=param_name, value=self.kwargs[param_name])
                 self.arguments.append(f"--{param_name}")
                 self.arguments.append("{{inputs.parameters.%s}}" % param_name)
 
             self.inputs.append(p)
 
-        self.op = dsl.ContainerOp(
-            name=f"{self.name}",
-            image=self.pipeline.image_url,
-            command=self.pipeline.package_entrypoint,
-            arguments=self.arguments,
-            file_outputs={"default-json": self.pipeline.default_output_path()},
-        )
+    def _container_environment(self):
+        for env in self.pipeline.envs:
+            self.with_env(env, self.pipeline.envs[env])
 
-        # Set the re-direction of inputs
-        self.op.inputs = self.inputs
-        # print(f"self.op.outputs: {self.op.outputs}")
-
-        # Set the location for the
-        self.op.hml_op = self
-
-        # Create our command, but it won't be bound to a group
-        # at this point, we will need for someone else to use this
-        # later (e.g. at the Compile step)
-        # self.cli_command = click.command(name=self.name)(self.invoke)
-        self.cli_command = self._build_command()
-
-        self.with_empty_dir("hml-tmp", "/hml-tmp")
         self.with_env("HML_TMP", "/hml-tmp")
-
         self.with_env("KF_WORKFLOW_ID", "{{workflow.uid}}")
         self.with_env("KF_WORKFLOW_NAME", "{{workflow.name}}")
         self.with_env("KF_POD_NAME", "{{pod.name}}")
         self.with_env("KUBEFLOW_PIPELINE_NAME", self.name)
-
-        self.pipeline._add_op(self)
 
     def workflow_id(self):
         """
@@ -167,14 +178,16 @@ class HmlContainerOp(object):
             dumping the result as JSON to the pipelines `default_output_path()`.
         """
 
-        kwargs["op_context"] = self
+        package = HmlPackage(name=self.k8s_name, op=self, services=self.services)
+
+        kwargs["pkg"] = package
         ret = self.func(**kwargs)
 
         # Log all my environment variables for debugging purposes.
         # ToDo: Delete this!
-        logging.info(f"Executing: {self.pipeline.name}.{self.name}, env:")
-        for k in os.environ:
-            logging.info(f"\t{k}")
+        # logging.info(f"Executing: {self.pipeline.name}.{self.name}, env:")
+        # for k in os.environ:
+        #     logging.info(f"\t{k}")
 
         output_path = self.pipeline.default_output_path()
         if ret is None:
@@ -266,6 +279,12 @@ class HmlContainerOp(object):
         Returns:
             A reference to the current `HmlContainerOp` (self)
         """
+
+        # # Update our current environment, so everything works in local development
+        # os.environ[variable_name] = value
+
+        logging.info(f"Binding: ${variable_name} = {value}")
+
         self.op.container.add_env_variable(V1EnvVar(name=variable_name, value=str(value)))
         return self
 
@@ -286,4 +305,3 @@ class HmlContainerOp(object):
         self.op.add_volume(k8s_client.V1Volume(name=name, empty_dir=k8s_client.V1EmptyDirVolumeSource()))
         self.op.add_volume_mount(k8s_client.V1VolumeMount(name=name, mount_path=mount_path))
         return self
-

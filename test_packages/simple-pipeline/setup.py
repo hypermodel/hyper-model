@@ -27,5 +27,5 @@ setup(
     packages=find_packages(),
     python_requires=">=3.5.3",
     include_package_data=True,
-    entry_points={"console_scripts": ["simple-pipeline = simple_pipeline.start:main"]},
+    entry_points={"console_scripts": ["simples = simple_pipeline.start:main"]},
 )

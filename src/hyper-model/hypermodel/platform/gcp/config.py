@@ -27,7 +27,7 @@ class GooglePlatformConfig(PlatformConfig):
         self.lake_bucket = self.get_env("LAKE_BUCKET")
         self.lake_path = self.get_env("LAKE_PATH")
 
-        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET')
+        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET', "hyper_model")
         self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", "australia-southeast1")
 
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')
@@ -39,12 +39,10 @@ class GooglePlatformConfig(PlatformConfig):
 
         self.is_local_dev = self.ci_commit == "no-commit"
 
-        self.gitlab_token = self.get_env("GITLAB_TOKEN", None)
-        self.gitlab_project = self.get_env("GITLAB_PROJECT", None)
-        self.gitlab_url = self.get_env("GITLAB_URL", None)
+        self.gitlab_token = self.get_env("GITLAB_TOKEN", "")
+        self.gitlab_project = self.get_env("GITLAB_PROJECT", "")
+        self.gitlab_url = self.get_env("GITLAB_URL", "")
 
         self.temp_path = self.get_env("TEMP_PATH", "/tmp")
 
         self.CHUNK_SIZE = 10485760
-
-

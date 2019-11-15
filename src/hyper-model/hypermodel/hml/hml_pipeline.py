@@ -3,6 +3,7 @@ import json
 import os
 import logging
 import yaml
+import tempfile
 from typing import List, Dict, Optional
 from datetime import datetime
 from kfp import dsl
@@ -24,8 +25,22 @@ class HmlPipeline:
         image_url: str,
         package_entrypoint: str,
         op_builders: List[Callable[[HmlContainerOp], HmlContainerOp]],
+        envs: Dict[str, str]
     ):
+
+        if cli is None:
+            raise(TypeError("Parameter: `cli` must be supplied"))
+        if pipeline_func is None:
+            raise(TypeError("Parameter: `pipeline_func` must be supplied"))
+        if services is None:
+            raise(TypeError("Parameter: `services` must be supplied"))
+        if image_url is None or image_url == "":
+            raise(TypeError("Parameter: `image_url` must be supplied"))
+        if package_entrypoint is None or package_entrypoint == "":
+            raise(TypeError("Parameter: `package_entrypoint` must be supplied"))
+
         self.name = pipeline_func.__name__
+        self.envs: Dict[str, str] = envs
         self.services = services
         self.pipeline_func = pipeline_func
         self.kubeflow_pipeline = dsl.pipeline(pipeline_func, pipeline_func.__name__)
@@ -198,10 +213,8 @@ class HmlPipeline:
             return os.path.join("/hml-tmp", "default-output.json")
 
         if "HML_TMP" not in os.environ:
-            temp_path = os.environ["TEMP"]
-            logging.error(
-                f"Unable to load environment variable $HML_TMP, using default value from $TEMP: '{temp_path}'"
-            )
+            temp_path = tempfile.gettempdir()
+            logging.warning(f"Unable to load temp_path from $HML_TMP, using system value: '{temp_path}'")
         else:
             temp_path = os.environ["HML_TMP"]
 
@@ -209,7 +222,7 @@ class HmlPipeline:
 
     def get_dag(self):
         """
-        Get the calculated Argo Workflow Directed Acyclic Graph created by the Kubeflow Pipeline.ArithmeticError
+        Get the calculated Argo Workflow (Directed Acyclic Graph) created by the Kubeflow Pipeline.ArithmeticError
 
         Returns:
             The "dag" object from the Argo workflow template.

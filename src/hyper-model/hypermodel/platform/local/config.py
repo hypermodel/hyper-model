@@ -16,7 +16,7 @@ class LocalConfig(PlatformConfig):
         self.lake_bucket = self.get_env("LAKE_BUCKET")
         self.lake_path = self.get_env("LAKE_PATH")
 
-        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET')
+        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET', "hyper_model")
         self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", "./data")
 
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')

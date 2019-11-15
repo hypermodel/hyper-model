@@ -23,6 +23,7 @@ hypermodel/hml/hml_app.py
 hypermodel/hml/hml_container_op.py
 hypermodel/hml/hml_inference_app.py
 hypermodel/hml/hml_inference_deployment.py
+hypermodel/hml/hml_package.py
 hypermodel/hml/hml_pipeline.py
 hypermodel/hml/hml_pipeline_app.py
 hypermodel/hml/model_container.py
@@ -32,6 +33,7 @@ hypermodel/kubeflow/deploy.py
 hypermodel/kubeflow/deploy_dev.py
 hypermodel/kubeflow/kubeflow_client.py
 hypermodel/model/__init__.py
+hypermodel/model/package_data.py
 hypermodel/model/table_schema.py
 hypermodel/platform/__init__.py
 hypermodel/platform/gcp/__init__.py

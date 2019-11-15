@@ -8,6 +8,7 @@ import click
 
 
 from hypermodel.hml.hml_app import HmlApp
+from hypermodel.hml.hml_package import HmlPackage
 from hypermodel.hml.hml_pipeline_app import HmlPipelineApp
 from hypermodel.hml.hml_inference_app import HmlInferenceApp
 from hypermodel.hml.hml_inference_deployment import HmlInferenceDeployment
