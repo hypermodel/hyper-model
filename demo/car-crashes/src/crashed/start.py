@@ -63,14 +63,14 @@ def main():
 
         bucket = "grwdt-dev-lake"
 
-        training_table = pipeline.select_into(training_sql, "crashed", "crashes_training")
-        training_csv = pipeline.export_csv(bucket, "crashed", f"{training_table}.csv")
-        features_artifact_cat = pipeline.analyze_categorical_features(bucket, training_csv, "encodings.json", FEATURES_CATEGORICAL)
-        features_artifact_num = pipeline.analyze_numeric_features(bucket, training_csv, "distributions.json", FEATURES_NUMERIC)
+        training_table = pipeline.select_into(sql=training_sql, output_dataset="crashed", output_table="crashes_training")
+        training_csv = pipeline.export_csv(bucket=bucket, dataset="crashed", table=training_table, filename=f"{training_table}.csv")
+        features_artifact_cat = pipeline.analyze_categorical_features(bucket=bucket, csv_path=training_csv, output_name="encodings.json", columns=FEATURES_CATEGORICAL)
+        features_artifact_num = pipeline.analyze_numeric_features(bucket=bucket, csv_path=training_csv, output_name="distributions.json", columns=FEATURES_NUMERIC)
 
-        matrix_path = pipeline.build_matrix(bucket, training_csv, features_artifact_cat, FEATURES_NUMERIC, "final.csv")
+        matrix_path = pipeline.build_matrix(bucket=bucket, csv_path=training_csv, analysis_path_categorical=features_artifact_cat, numeric_features=FEATURES_NUMERIC, output_name="final.csv")
 
-        model_path = pipeline.train_model(matrix_path, TARGET, f"{MODEL_NAME}.joblib")
+        model_path = pipeline.train_model(matrix_path=matrix_path, target=TARGET, output_name=f"{MODEL_NAME}.joblib")
 
         # validation_ref = pipeline.select_into(training_sql, "crashed", "crashes_validation")
 

@@ -105,7 +105,7 @@ class HmlApp:
 
         logging.info("HmlApp.start()")
 
-        context = {"app": self, "services": self.services, "models": self.models}
+        # context = {"app": self, "services": self.services, "models": self.models}
 
         # Initialize my services (laod config)
         self.services.initialize()
@@ -113,4 +113,4 @@ class HmlApp:
         # Initialize my pipelines
         self.pipelines.initialize()
 
-        self.cli_root(obj=context, auto_envvar_prefix="HML")
+        self.cli_root(auto_envvar_prefix="HML")
