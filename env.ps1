@@ -11,5 +11,12 @@ $Env:K8S_CLUSTER="kfw-svc-test"
 
 $Env:KFP_ARTIFACT_PATH="."
 
+$Env:DOCKERHUB_IMAGE="growingdata/demo-crashed"
+$Env:CI_COMMIT_SHA="no-commit"
+
+
+$Env:KUBECONFIG="/temp/.kube/config"
+
 #For the Windows environment
+
 #usage env.ps1

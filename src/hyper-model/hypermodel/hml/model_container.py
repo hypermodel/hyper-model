@@ -15,8 +15,11 @@ from hypermodel.features import (
     one_hot_encode,
     describe_features
 )
-from hypermodel.platform.abstract.services import PlatformServicesBase
 
+
+  
+
+from hypermodel.platform.abstract.services import PlatformServicesBase
 
 class ModelContainer:
     """
@@ -48,7 +51,8 @@ class ModelContainer:
         self.features_categorical = features_categorical
         self.features_all = features_numeric+features_categorical
         self.target = target
-
+        #instantiating self.feature_uniques to null rather than lazy loading it later
+        self.feature_uniques=None
         # File name helpers
         self.filename_distributions = f"{self.name}-distributions.json"
         self.filename_model = f"{self.name}.joblib"
@@ -66,16 +70,17 @@ class ModelContainer:
             data_frame (pd.DataFrame): The dataframe to analyze
 
         Returns:
-            A reference to self
+            A reference to self 
         """
         logging.info(f"ModelContainer {self.name}: analyze_distributions")
+
         self.feature_uniques = get_unique_feature_values(
             data_frame, self.features_categorical
         )
         self.feature_summaries = describe_features(data_frame, self.features_numeric)
 
         return self
-
+  
     def dump_distributions(self):
         """
         Write information about the distributions of features to the local filesystem
@@ -106,8 +111,21 @@ class ModelContainer:
         """
         logging.info(f"ModelContainer {self.name}: build_training_matrix")
 
+    	#ADDED the following check if the 
+        #feature_uniques was populated accordin to unique values
+        #in case feature_uniques is prepopulated the assumption is 
+        # that the correct values are uploaded
+        if  self.feature_uniques==None:
+            self.analyze_distributions(data_frame)
+
+
         # Now lets do the encoding thing...
+
+
+  
+
         encoded_df = one_hot_encode(data_frame, self.feature_uniques)
+
 
         for nf in self.features_numeric:
             encoded_df[nf] = data_frame[nf]
@@ -142,7 +160,6 @@ class ModelContainer:
             # Load the distributions
             dist_ref = reference["distributions"]
             dist_path = self.get_local_path(self.filename_distributions)
-
             lake.download(dist_ref["path"], dist_path)
             self.load_distributions(dist_path)
 
@@ -174,6 +191,7 @@ class ModelContainer:
 
         config = self.services.config
         lake = self.services.lake
+
 
         lake.upload(bucket_path_dist, local_path_dist, bucket_name=config.lake_bucket)
         lake.upload(bucket_path_model, local_path_model, bucket_name=config.lake_bucket)
@@ -230,12 +248,14 @@ class ModelContainer:
 
         if not os.path.exists(path):
             os.makedirs(path)
-        return f"{self.services.config.kfp_artifact_path}/{filename}"
+        return os.path.join(self.services.config.kfp_artifact_path,filename)    
+        #return f"{self.services.config.kfp_artifact_path}/{filename}"
 
     def get_bucket_path(self, filename):
         config = self.services.config
         workflow_id = (
             os.environ["KF_WORKFLOW_ID"] if "KF_WORKFLOW_ID" in os.environ else "local"
         )
-        path = f"models/{self.project_name}/{config.ci_commit}/{workflow_id}/{filename}"
-        return path
+        #path = f"models/{self.project_name}/{config.ci_commit}/{workflow_id}/{filename}"
+        
+        return os.path.join("models",self.project_name,config.ci_commit,workflow_id,filename)

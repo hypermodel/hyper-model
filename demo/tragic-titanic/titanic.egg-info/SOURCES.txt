@@ -3,6 +3,9 @@ setup.py
 titanic/__init__.py
 titanic/__main__.py
 titanic/model_config.py
+titanic/tragic_titanic_config.py
+titanic/tragic_titanic_pipeline.py
+titanic/tragic_titanic_shared.py
 titanic.egg-info/PKG-INFO
 titanic.egg-info/SOURCES.txt
 titanic.egg-info/dependency_links.txt

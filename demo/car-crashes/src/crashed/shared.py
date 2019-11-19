@@ -44,7 +44,7 @@ def crashed_model_container(app:  hml.HmlApp):
         "light_condition",
         "road_geometry",
         "speed_zone",
-    ]
+    ] 
 
     model_container = hml.ModelContainer(
         name=MODEL_NAME,
@@ -55,7 +55,6 @@ def crashed_model_container(app:  hml.HmlApp):
         services=app.services
     )
     return model_container
-
 
 
 def build_feature_matrix(model_container, data_frame: pd.DataFrame, throw_on_missing=False):

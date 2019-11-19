@@ -10,13 +10,14 @@ from crashed import shared, pipeline, inference
 
 def main():
 
+    logging.info("Ëntered Main")
     # Create a reference to our "App" object which maintains state
     # about both the Inference and Pipeline phases of the model
     image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
 
     app = hml.HmlApp(
         name="car-crashes",
-        platform="GCP",
+        platform="Local",
         image_url=image_url,
         package_entrypoint="crashed",
         inference_port=8000,
@@ -98,7 +99,7 @@ def main():
 
     @hml.deploy_inference(app.inference)
     def deploy_inference(deployment: hml.HmlInferenceDeployment):
-        print(f"Preparing deploying: {deployment.deployment_name} ({deployment.k8s_container.image} -> {deployment.k8s_container.args} )")
+        logging.info(f"Preparing deploying: {deployment.deployment_name} ({deployment.k8s_container.image} -> {deployment.k8s_container.args} )")
 
         (
             deployment

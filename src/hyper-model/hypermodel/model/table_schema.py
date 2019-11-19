@@ -29,6 +29,9 @@ class SqlColumn():
     def __str__(self) -> str:
         return self.to_sql()
 
+    def __eq__(self, other):
+        return (self.column_name == other.column_name) & (self.column_type == other.column_type) & (self.nullable == other.nullable)
+
 
 class SqlTable():
     """
@@ -56,3 +59,22 @@ class SqlTable():
 
     def __str__(self) -> str:
         return self.to_sql()
+
+    def __eq__(self, other):
+        table_attributes_equal=(self.table_id==other.table_id) & (self.dataset_id==other.dataset_id )
+        if len(self.columns)>0:
+            col_attributes_equal=False
+        else:
+            col_attributes_equal=True
+
+        for col in self.columns:
+            if col in other.columns:
+                col_attributes_equal=True
+            else:
+                col_attributes_equal=False
+                break
+        
+        col_attributes_equal=col_attributes_equal & (len(self.columns)==len(other.columns))
+        
+        
+        return table_attributes_equal & col_attributes_equal

@@ -55,8 +55,6 @@ def train_model(ctx):
     app: HmlApp = ctx.obj["app"]
     model_container = get_model_container(ctx)
 
-    print(model_container)
-
     training_df = services.warehouse.dataframe_from_table(
         services.config.warehouse_dataset, BQ_TABLE_TRAINING
     )
@@ -102,7 +100,7 @@ def get_model_container(ctx):
     models: Dict[str, ModelContainer] = ctx.obj["models"]
     model_container = models[MODEL_NAME]
     return model_container
-
+ 
 
 def train(model_container, data_frame):
     logging.info(f"training: {model_container.name}: train")

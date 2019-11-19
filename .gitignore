@@ -31,3 +31,5 @@ artifacts/**
 **/docs/_build/**
 *.db
 *.dat
+abc.py
+

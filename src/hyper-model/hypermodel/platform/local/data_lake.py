@@ -1,6 +1,14 @@
 from abc import ABC, abstractmethod
 from hypermodel.platform.abstract.data_lake import DataLakeBase
 from hypermodel.platform.local.config import LocalConfig
+from hypermodel.platform.local.data_warehouse import SqliteDataWarehouse
+from hypermodel.platform.local.config import LocalConfig
+import sqlite3
+import csv
+from hypermodel.tests.utilities.sqlite_utility import get_column_names
+from shutil import copyfile
+import os 
+
 
 class LocalDataLake(DataLakeBase):
 
@@ -10,34 +18,44 @@ class LocalDataLake(DataLakeBase):
     def __init__(self, config: LocalConfig):
         self.config = config
 
-    def upload(self, bucket_path: str, local_path: str, bucket_name: str = None) -> bool:
-        # storage_client = storage.Client()
+    # The following is the rough mapping between the GCP implementation
+    # and the Local implementation
+    # GCP           <------->   Local
+    # bucket_path   <------->   from_file_path
+    # local_path    <------->   to_file_path
+    # bucket_name   <------->   file_name
 
-        # if bucket_name is None:
-        #     bucket_name = self.config.lake_bucket
 
-        # bucket = storage_client.get_bucket(bucket_name)
+    def upload(self, to_file_path: str, from_file_path: str, file_name: str = None) -> bool:
 
-        # file_name = os.path.basename(local_path)
-        # full_path = f"{self.config.lake_path}/{bucket_path}"
-
-        # blob = bucket.blob(full_path, chunk_size=self.config.CHUNK_SIZE)
-
-        # logging.info(f"Uploading {local_path} -> gs://{self.config.lake_bucket}/{full_path}/ ...")
-        # blob.upload_from_filename(local_path)
-
+        from_file=os.path.join(from_file_path,file_name)
+        to_file=os.path.join(to_file_path,file_name)
+        copyfile(from_file,to_file)
         return True
 
-    def download(self, bucket_path: str, destination_local_path: str, bucket_name: str = None) -> bool:
-        # storage_client = storage.Client()
+    
+    # The following is the rough mapping between the GCP implementation
+    # and the Local implementation
+    # GCP                     <------->   Local
+    # bucket_path             <------->   from_file_folder  this is the folder + file
+    # destination_local_path  <------->   to_file_path  this is the folder + file
+    # bucket_name             <------->   bucket_name This is redundand in local 
 
-        # if bucket_name is None:
-        #     bucket_name = self.config.lake_bucket
+    def download(self, from_file_path: str, to_file_path: str, file_name: str = None) -> bool:
+        if file_name is None:
+            file_name = self.config.lake_bucket
 
-        # logging.info(f"DataLake: downloading gs://{bucket_name}/{bucket_path} -> {destination_local_path}")
 
-        # full_path = f"{self.config.lake_path}/{bucket_path}"
-        # bucket = storage_client.get_bucket(bucket_name)
-        # blob = bucket.blob(full_path, chunk_size=self.config.CHUNK_SIZE)
-        # blob.download_to_filename(destination_local_path)
+        #local path of file so copying the file
+        #from_file=os.path.join(from_file_folder,file_name)
+        from_file=from_file_path
+        #to_file=os.path.join(to_file_path,file_name)
+        to_file=to_file_path
+        copyfile(from_file,to_file)
         return True
+
+
+
+
+
+  

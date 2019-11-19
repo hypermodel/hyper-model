@@ -4,11 +4,13 @@ Helper functions for dealing with categorical features
 
 import pandas as pd
 from typing import List, Dict
+import numpy
+import math 
 
 
 def get_unique_feature_values(dataframe: pd.DataFrame, features: List[str]) -> Dict[str, List[str]]:
     """
-    Take a dataframe and a list of features, and for each feature find me all the unique
+        Take a dataframe and a list of features, and for each feature find me all the unique
     values of that feature.  This is a useful step prior to one-hot encoding, as it gives
     you a list of all the values we can expect to encode. 
 
@@ -20,10 +22,15 @@ def get_unique_feature_values(dataframe: pd.DataFrame, features: List[str]) -> D
         A dictionary keyed by the name of each feature, containing a list of all that features
         unique values
     """
+
+
     feature_uniques: Dict[str, List[str]] = dict()
+
     for feature in features:
         unique_features = dataframe[feature].unique()
         feature_uniques[feature] = unique_features.tolist()
+  
+    
     return feature_uniques
 
 

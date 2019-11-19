@@ -21,7 +21,7 @@ class HmlPipelineApp:
                  cli: click.Group,
                  image_url: str,
                  package_entrypoint: str):
-        self.name = name
+        self.name = name    
         self.cli_root = cli
         self.cli_root.add_command(cli_pipeline_group)
 

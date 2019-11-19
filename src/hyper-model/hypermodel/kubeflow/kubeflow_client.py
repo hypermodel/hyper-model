@@ -30,11 +30,6 @@ class KubeflowClient():
 
         self.config = self.kfp_client._load_config(self.host, self.client_id, self.namespace)
 
-        #print(f"kfp auth:")
-        #print(f"\thost: {self.host}")
-        #print(f"\tclient_id: {self.client_id}")
-        #print(f"\tnamespace: {self.namespace}")
-        #print(f"\tapi_key: {self.config.api_key}")
         self.kfp_pipelines = self._connect_pipelines_api()
         self.kfp_runs = self._connect_runs_api()
         self.kfp_jobs = self._connect_jobs_api()
@@ -87,7 +82,6 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         count = len(all_experiments)
-        #print(f"list_experiments: found {count}")
 
         return all_experiments
 
@@ -129,7 +123,6 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         count = len(all_jobs)
-        #print(f"all_jobs: found {count}")
 
         return all_jobs
 
@@ -209,7 +202,6 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         run_count = len(all_runs)
-        #print(f"list_runs: found {run_count}")
         return all_runs
 
     def list_pipelines(self):
@@ -230,7 +222,6 @@ class KubeflowClient():
             next_page_token = response.next_page_token
 
         pipeline_count = len(all_pipelines)
-        #print(f"list_pipelines: found {pipeline_count}")
         return all_pipelines
 
     def find_experiment(self, id=None, name=None):

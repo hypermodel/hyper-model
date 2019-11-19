@@ -10,7 +10,7 @@ class PlatformConfig:
 
     def get_env(self, key: str, default: str="") -> str:
         if not key in os.environ:
-            logging.warn(f"Unable to load environment variable ${key}, using default value: '{default}'")
+            logging.warning(f"Unable to load environment variable ${key}, using default value: '{default}'")
             self.data[key] = default
             return default
 

@@ -1,0 +1,67 @@
+{
+    "feature_uniques": {
+        "cat_feature1": [
+            "val11",
+            "val12",
+            "val13"
+        ],
+        "cat_feature2": [
+            "val21",
+            "val22",
+            "val23",
+            "val24",
+            "val25",
+            "val26",
+            "val27",
+            "val28",
+            "val29",
+            "val20"
+        ],
+        "cat_feature3": [
+            "val31",
+            "val32"
+        ]
+    },
+    "feature_summaries": {
+        "num_feature1": {
+            "count": 50.0,
+            "mean": 2.8,
+            "std": 1.3093073414159542,
+            "min": 1.0,
+            "25%": 2.0,
+            "50%": 3.0,
+            "75%": 4.0,
+            "max": 5.0
+        },
+        "num_feature2": {
+            "count": 50.0,
+            "mean": 3.424,
+            "std": 2.2716136492433234,
+            "min": 1.1,
+            "25%": 1.1,
+            "50%": 3.5,
+            "75%": 5.9,
+            "max": 6.4
+        },
+        "num_feature3": {
+            "count": 50.0,
+            "mean": 5231.42,
+            "std": 3470.9354152353076,
+            "min": 300.0,
+            "25%": 1001.0,
+            "50%": 6041.0,
+            "75%": 7811.0,
+            "max": 9011.0
+        }
+    },
+    "model": {
+        "bucket": "hypermodel\\sqlite_lake_bucket",
+        "path": "bucket_path_model",
+        "md5": "file_md5(local_path_model)"
+    },
+    "distributions": {
+        "bucket": "hypermodel\\sqlite_lake_bucket",
+        "path": "tests/test_data",
+        "md5": "file_md5(local_path_dist)"
+    }
+}

@@ -69,6 +69,7 @@ class HmlApp():
             The model with the given name, or throws a KeyNotFound exception.
         """
 
+
         return self.models[model_name]
 
     @click.group()
@@ -97,5 +98,4 @@ class HmlApp():
             "services": self.services,
             "models": self.models
         }
-        # print(f"HmlApp.start()")
         self.cli_root(obj=context, auto_envvar_prefix="HML")

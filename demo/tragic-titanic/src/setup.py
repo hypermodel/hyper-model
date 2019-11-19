@@ -22,6 +22,8 @@ REQUIRES = [
     "xgboost",
     "pandas",
     "hypermodel",
+    "pytest",
+    "sklearn",
 ]
 
 setup(
@@ -48,5 +50,5 @@ setup(
     ],
     python_requires=">=3.5.3",
     include_package_data=True,
-    entry_points={"console_scripts": ["titanic = titanic.__main__:main"]},
+    entry_points={"console_scripts": ["titanic = titanic.start:main"]},
 )
