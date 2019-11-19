@@ -11,36 +11,7 @@ from kfp.gcp import use_gcp_secret
 from hypermodel.utilities.k8s import sanitize_k8s_name
 from hypermodel.platform.abstract.services import PlatformServicesBase
 from hypermodel.hml.hml_package import HmlPackage
-
-# from hypermodel.hml.hml_pipeline import HmlPipeline
-
-_current_pipeline: Any = None
-_old_pipeline: Any = None
-
-
-def _pipeline_enter(pipeline: Any):
-    global _current_pipeline
-    global _old_pipeline
-
-    logging.info(f"_pipeline_enter: {pipeline.name}")
-    _old_pipeline = _current_pipeline
-    _current_pipeline = pipeline
-
-
-def _pipeline_exit():
-    global _current_pipeline
-    global _old_pipeline
-
-    logging.info(f"_pipeline_exit: {_current_pipeline.name}")
-    _current_pipeline = _old_pipeline
-
-
-def _deserialize_option(ctx, param, value):
-
-    logging.info(f"_deserialize_option for {param.name}: {value}")
-    if value.startswith("{"):
-        return json.loads(value)
-    return value
+from hypermodel.hml.hml_global import _bind_package, _deserialize_option, _get_current_pipeline
 
 
 class HmlContainerOp(object):
@@ -63,10 +34,10 @@ class HmlContainerOp(object):
         self.kwargs = kwargs
 
         # Store a reference to the current pipeline
-        if _current_pipeline is None:
-            logging.error("Unable to create HmlContainerOp, the `_pipeline_enter` function has not been called")
+        self.pipeline = _get_current_pipeline()
+        if self.pipeline is None:
+            raise(Exception("Unable to initialise HmlContainerOp, the `hml_global._pipeline_enter` function has not been called"))
 
-        self.pipeline = _current_pipeline
         self.services = self.pipeline.services
 
         # Bind the input & output objects
@@ -180,7 +151,8 @@ class HmlContainerOp(object):
 
         package = HmlPackage(name=self.k8s_name, op=self, services=self.services)
 
-        kwargs["pkg"] = package
+        _bind_package(package)
+
         ret = self.func(**kwargs)
 
         # Log all my environment variables for debugging purposes.

@@ -17,7 +17,13 @@ class HmlPackage:
     for managing what the current version of a Model is.
     """
 
-    def __init__(self, name: str, op: "HmlContainerOp", services: PlatformServicesBase):
+    def __init__(
+        self,
+        name: str,
+        services: PlatformServicesBase = None,
+        op: "HmlContainerOp" = None,
+        pipeline: "HmlPipeline" = None,
+    ):
         """
         Initialize a new Hml App with the given name, platform ("local" or "GCP") and
         a dictionary of configuration values
@@ -30,8 +36,12 @@ class HmlPackage:
 
         """
         self.name = name
-        self.op = op
-        self.pipeline = op.pipeline
+        if op is not None:
+            self.op = op
+            self.pipeline = op.pipeline
+        if pipeline is not None:
+            self.pipeline = pipeline
+
         self.services = services
 
     def artifact_path(self, artifact_name: str):
@@ -105,14 +115,14 @@ class HmlPackage:
                 "updated": str(datetime.now()),
                 "created": str(datetime.now()),
                 "artifacts": dict(),
-                "updates": list()
+                "updates": list(),
             }
 
         package = json.loads(json_string)
 
         if not "artifacts" in package:
-            raise(BaseException("No `artifacts` property was found in JSON"))
+            raise (BaseException("No `artifacts` property was found in JSON"))
         if not "name" in package:
-            raise(BaseException("No `name` property was found in JSON"))
+            raise (BaseException("No `name` property was found in JSON"))
 
         return package
