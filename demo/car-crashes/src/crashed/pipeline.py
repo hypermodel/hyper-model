@@ -14,10 +14,10 @@ from crashed.shared import FEATURES_NUMERIC, FEATURES_CATEGORICAL, TARGET
 
 
 @hml.op()
-def select_into(pkg: hml.HmlPackage= None,
-                sql: str = None,
-                output_dataset: str = None,
-                output_table: str= None):
+def select_into(pkg: hml.HmlPackage,
+                sql: str,
+                output_dataset: str,
+                output_table: str):
 
     services = pkg.services
     services.warehouse.select_into(sql, output_table)
@@ -25,28 +25,28 @@ def select_into(pkg: hml.HmlPackage= None,
 
 
 @hml.op()
-def export_csv(pkg: hml.HmlPackage= None,
-               bucket: str = None,
-               dataset_name: str= None,
-               table_name: str= None,
-               filename: str = None
+def export_csv(pkg: hml.HmlPackage,
+               bucket: str,
+               dataset: str,
+               table: str,
+               filename: str
                ):
 
     services = pkg.services
     bucket_path = pkg.artifact_path(filename)
     bucket_url = f"gs://{bucket}/{bucket_url}"
-    services.warehouse.export_csv(bucket, bucket_url, dataset_name, table_name)
+    services.warehouse.export_csv(bucket, bucket_url, dataset, table)
 
     return bucket_url
 
 
 @hml.op()
 def analyze_categorical_features(
-    pkg: hml.HmlPackage= None,
-    bucket: str = None,
-    csv_path: str = None,
-    analysis_artifact_name: str = None,
-    columns: List[str] = None
+    pkg: hml.HmlPackage,
+    bucket: str,
+    csv_path: str,
+    output_name: str,
+    columns: List[str]
 ):
     services = pkg.services
 
@@ -54,16 +54,16 @@ def analyze_categorical_features(
     unique_feature_values = get_unique_feature_values(training_df, columns)
 
     # Add the artifact we have just produced
-    return pkg.add_artifact_json(analysis_artifact_name, unique_feature_values)
+    return pkg.add_artifact_json(output_name, unique_feature_values)
 
 
 @hml.op()
 def analyze_numeric_features(
-    pkg: hml.HmlPackage= None,
-    bucket: str = None,
-    csv_path: str = None,
-    analysis_artifact_name: str = None,
-    columns: List[str]= None
+    pkg: hml.HmlPackage,
+    bucket: str,
+    csv_path: str,
+    output_name: str,
+    columns: List[str]
 ):
     services = pkg.services
 
@@ -71,17 +71,17 @@ def analyze_numeric_features(
     unique_feature_values = describe_features(training_df, columns)
 
     # Add the artifact we have just produced
-    return pkg.add_artifact_json(analysis_artifact_name, unique_feature_values)
+    return pkg.add_artifact_json(output_name, unique_feature_values)
 
 
 @hml.op()
 def build_matrix(
-    pkg: hml.HmlPackage= None,
-    bucket: str = None,
-    csv_path: str = None,
-    analysis_path_categorical: str = None,
-    numeric_features: List[str] = None,
-    file_name: str = None
+    pkg: hml.HmlPackage,
+    bucket: str,
+    csv_path: str,
+    analysis_path_categorical: str,
+    numeric_features: List[str],
+    output_name: str
 ):
     services = pkg.services
     unique_feature_values = json.loads(services.lake.download_string(analysis_path_categorical))
@@ -91,15 +91,15 @@ def build_matrix(
     for nf in numeric_features:
         encoded_df[nf] = data_frame[nf]
 
-    return pkg.add_artifact_dataframe(file_name, encoded_df)
+    return pkg.add_artifact_dataframe(output_name, encoded_df)
 
 
 @hml.op()
 def train_model(
-    pkg: hml.HmlPackage= None,
-    matrix_path: str = None,
-    target: str = None,
-    model_filename: str = None
+    pkg: hml.HmlPackage,
+    matrix_path: str,
+    target: str,
+    output_name: str
 ):
     services = pkg.services
     final_df = services.lake.download_csv(bucket, matrix_path)
@@ -113,7 +113,7 @@ def train_model(
     tmp_path = os.path.join("/tmp/", f"{filename}.joblib")
     joblib.dump(model, tmp_path)
 
-    artifact_path = pkg.add_artifact_file(model_filename, tmp_path)
+    artifact_path = pkg.add_artifact_file(output_name, tmp_path)
     os.remove(tmp_path)
 
     return artifact_path
