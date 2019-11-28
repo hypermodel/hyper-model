@@ -19,8 +19,8 @@ def select_into(sql: str, output_dataset: str, output_table: str):
     pkg = hml.get_package()
 
     services = pkg.services
-    services.warehouse.select_into(sql, output_table)
-    return "testing"
+    services.warehouse.select_into(sql, output_dataset, output_table)
+    return output_table
 
 
 @hml.op()
@@ -29,8 +29,7 @@ def export_csv(bucket: str, dataset_name: str, table_name: str, filename: str):
 
     services = pkg.services
     bucket_path = pkg.artifact_path(filename)
-    bucket_url: str = f"gs://{bucket}/{bucket_url}"
-    services.warehouse.export_csv(bucket, bucket_url, dataset_name, table_name)
+    bucket_url = services.warehouse.export_csv(bucket, bucket_path, dataset_name, table_name)
 
     return bucket_url
 

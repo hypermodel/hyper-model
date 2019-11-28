@@ -171,9 +171,9 @@ class HmlPipeline:
 
         for t in self.tasks:
             task_name = t["name"]
-            self.run_task(task_name, run_log, kwargs)
+            self.run_task(task_name, run_log)
 
-    def run_task(self, task_name: str, run_log: Dict[str, bool], kwargs):
+    def run_task(self, task_name: str, run_log: Dict[str, bool]):
         """
         Execute the Kubelow Operation for real, and mark the task as executed in the dict `run_log`
         so that we don't re-execute tasks that have already been executed.
@@ -181,7 +181,6 @@ class HmlPipeline:
         Args:
             task_name (str): The name of the task/op to execute
             run_log (Dict[str, bool]): A dictionary of all the tasks/ops we have already run
-            kwargs: Additional keywork arguments to pass into the execution of the task
 
         Returns:
             None
@@ -204,11 +203,11 @@ class HmlPipeline:
         if "dependencies" in task:
             for d in task["dependencies"]:
                 if d not in run_log:
-                    self.run_task(d, run_log, kwargs)
+                    self.run_task(d, run_log)
 
         # Execute the operation, including the binding of parameters...
         #  TODO: We need to make sure that we bind the keyword args here, or it wont work.
-        hml_op.invoke(**kwargs)
+        hml_op.invoke()
 
         run_log[hml_op.k8s_name] = True
 

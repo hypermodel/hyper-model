@@ -88,7 +88,7 @@ class DataLake(DataLakeBase):
 
         filename = uuid.uuid4()
         tmp_path = os.path.join("/tmp/", f"{filename}.csv")
-        self.download(bucket_path, tmp_path, bucket_name=bucket_name)
+        self.download(bucket_name, bucket_path, tmp_path)
 
         df = pd.read_csv(tmp_path)
 

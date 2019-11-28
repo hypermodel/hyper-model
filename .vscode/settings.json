@@ -1,0 +1,19 @@
+{
+  "python.pythonPath": "C:\\Users\\Tez\\.conda\\envs\\hml-dev\\python.exe",
+  "python.linting.mypyEnabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.linting.pylintUseMinimalCheckers": false,
+  "python.linting.enabled": true,
+  "python.linting.mypyPath": "C:\\Users\\Tez\\.mypyls\\Scripts\\mypy",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/__pycache__": true,
+    "**/*.egg-info/": true,
+    "**/node_modules/**": true,
+    "**/.mypy_cache": true
+  }
+}

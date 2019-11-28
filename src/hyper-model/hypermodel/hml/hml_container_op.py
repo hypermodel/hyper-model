@@ -50,6 +50,7 @@ class HmlContainerOp(object):
             arguments=self.arguments,
             file_outputs={"default-json": self.pipeline.default_output_path()},
         )
+        self.has_invoked = False
 
         # Set the re-direction of inputs
         self.op.inputs = self.inputs
@@ -139,7 +140,7 @@ class HmlContainerOp(object):
 
         return wrapped
 
-    def invoke(self, **kwargs):
+    def invoke(self):
         """
         Actually invoke the function that this ContainerOp refers
         to (for testing / execution in the container)
@@ -149,11 +150,28 @@ class HmlContainerOp(object):
             dumping the result as JSON to the pipelines `default_output_path()`.
         """
 
+        if self.has_invoked == True:
+            raise(Exception(f"{self.name}: Op has already been invoked, multiple invokations are not supported"))
+
         package = HmlPackage(name=self.k8s_name, op=self, services=self.services)
 
         _bind_package(package)
 
-        ret = self.func(**kwargs)
+        # Lets go through my kwargs, looking for things that are of type "ContainerOp"
+        # and where they are, lets update their value to their return value (unpoack)
+        unpacked_kwargs = dict()
+        for k in self.kwargs:
+            v = self.kwargs[k]
+            if isinstance(v, dsl.ContainerOp):
+                op = v.hml_op
+                if not op.has_invoked:
+                    raise(Exception(f"{self.name}: Unable to invoke, argument '{k} has not been invoked"))
+                unpacked_kwargs[k] = op.return_value
+            else:
+                unpacked_kwargs[k] = v
+
+
+        ret = self.func(** unpacked_kwargs)
 
         # Log all my environment variables for debugging purposes.
         # ToDo: Delete this!
@@ -169,6 +187,8 @@ class HmlContainerOp(object):
         with open(output_path, "w") as f:
             json.dump(ret, f)
 
+        self.return_value = ret
+        self.has_invoked = True
         return ret
 
     def with_image(self, container_image_url: str) -> Optional["HmlContainerOp"]:
@@ -255,7 +275,7 @@ class HmlContainerOp(object):
         # # Update our current environment, so everything works in local development
         # os.environ[variable_name] = value
 
-        logging.info(f"Binding: ${variable_name} = {value}")
+        # logging.info(f"Binding: ${variable_name} = {value}")
 
         self.op.container.add_env_variable(V1EnvVar(name=variable_name, value=str(value)))
         return self

@@ -6,6 +6,7 @@ from typing import List
 from google.cloud import storage
 from google.cloud import bigquery
 from google.cloud.bigquery.table import Table, TableReference
+from google.cloud.bigquery.dataset import Dataset, DatasetReference
 from google.cloud.bigquery.job import LoadJobConfig, ExtractJobConfig, QueryJobConfig, CreateDisposition, WriteDisposition
 from google.cloud.bigquery.schema import SchemaField
 # from google.cloud import bigquery_storage_v1beta1
@@ -21,7 +22,7 @@ class DataWarehouse(DataWarehouseBase):
     def __init__(self, config: GooglePlatformConfig):
         self.config = config
 
-    def import_csv(self, bucket_path: str, dataset: str, table: str) -> bool:
+    def import_csv(self, bucket_name: str, bucket_path: str, dataset: str, table: str) -> bool:
         logging.info(f"DataWarehouse.import_csv {bucket_path} to {dataset}.{table} ...")
         client = self._get_client()
 
@@ -29,28 +30,36 @@ class DataWarehouse(DataWarehouseBase):
         config.autodetect = True
         config.field_delimiter = ","
 
-        load_job = client.load_table_from_uri(bucket_path, f"{dataset}.{table}", job_config=config)
+        
+        bucket_url = f"gs://{self.config.lake_path}/{bucket_path}"
+
+        load_job = client.load_table_from_uri(bucket_url, f"{dataset}.{table}", job_config=config)
         result = load_job.result()
 
         logging.info(f"DataWarehouse.import_csv {bucket_path} to {dataset}.{table} Complete!")
 
         return True
 
-    def export_csv(self, bucket_path: str, dataset: str, table: str) -> bool:
-        logging.info(f"DataWarehouse.export_csv {bucket_path} to {dataset}.{table} ...")
+    def export_csv(self, bucket_name: str, bucket_path: str, dataset: str, table: str) -> str:
+        
+        bucket_url = f"gs://{bucket_name}/{self.config.lake_path}/{bucket_path}"
+
+        logging.info(f"DataWarehouse.export_csv {bucket_url} to {dataset}.{table} ...")
         client = self._get_client()
 
-        to_export = TableReference(dataset, table)
+        dataset_ref = DatasetReference(self.config.gcp_project, dataset)
+
+        to_export = TableReference(dataset_ref, table)
         config = ExtractJobConfig()
         config.field_delimiter = "\t"
         config.destination_format = bigquery.DestinationFormat.CSV
 
-        extract_job = client.extract_table(to_export, bucket_path, job_config=config)
+        extract_job = client.extract_table(to_export, bucket_url, job_config=config)
         result = extract_job.result()
 
-        logging.info(f"DataWarehouse.export_csv {bucket_path} to {dataset}.{table} Complete!")
+        logging.info(f"DataWarehouse.export_csv {bucket_url} to {dataset}.{table} Complete!")
 
-        return True
+        return bucket_url
 
     def select_into(self, query: str, output_dataset: str, output_table: str) -> bool:
         logging.info(f"DataWarehouse.select_into -> {output_dataset}.{output_table} ...")
