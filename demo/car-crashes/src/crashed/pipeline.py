@@ -1,5 +1,6 @@
 import logging
 import joblib
+import json
 import click
 import os
 import uuid
@@ -14,40 +15,29 @@ from crashed.shared import FEATURES_NUMERIC, FEATURES_CATEGORICAL, TARGET
 
 
 @hml.op()
-def select_into(pkg: hml.HmlPackage,
-                sql: str,
-                output_dataset: str,
-                output_table: str):
+def select_into(sql: str, output_dataset: str, output_table: str):
+    pkg = hml.get_package()
 
     services = pkg.services
     services.warehouse.select_into(sql, output_table)
-    return output_table
+    return "testing"
 
 
 @hml.op()
-def export_csv(pkg: hml.HmlPackage,
-               bucket: str,
-               dataset: str,
-               table: str,
-               filename: str
-               ):
+def export_csv(bucket: str, dataset_name: str, table_name: str, filename: str):
+    pkg = hml.get_package()
 
     services = pkg.services
     bucket_path = pkg.artifact_path(filename)
-    bucket_url = f"gs://{bucket}/{bucket_url}"
-    services.warehouse.export_csv(bucket, bucket_url, dataset, table)
+    bucket_url: str = f"gs://{bucket}/{bucket_url}"
+    services.warehouse.export_csv(bucket, bucket_url, dataset_name, table_name)
 
     return bucket_url
 
 
 @hml.op()
-def analyze_categorical_features(
-    pkg: hml.HmlPackage,
-    bucket: str,
-    csv_path: str,
-    output_name: str,
-    columns: List[str]
-):
+def analyze_categorical_features(bucket: str, csv_path: str, analysis_artifact_name: str, columns: List[str]):
+    pkg = hml.get_package()
     services = pkg.services
 
     training_df = services.lake.download_csv(bucket, csv_path)
@@ -58,13 +48,9 @@ def analyze_categorical_features(
 
 
 @hml.op()
-def analyze_numeric_features(
-    pkg: hml.HmlPackage,
-    bucket: str,
-    csv_path: str,
-    output_name: str,
-    columns: List[str]
-):
+def analyze_numeric_features(bucket: str, csv_path: str, analysis_artifact_name: str, columns: List[str]
+                             ):
+    pkg = hml.get_package()
     services = pkg.services
 
     training_df = services.lake.download_csv(bucket, csv_path)
@@ -75,32 +61,22 @@ def analyze_numeric_features(
 
 
 @hml.op()
-def build_matrix(
-    pkg: hml.HmlPackage,
-    bucket: str,
-    csv_path: str,
-    analysis_path_categorical: str,
-    numeric_features: List[str],
-    output_name: str
-):
+def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, numeric_features: List[str], file_name: str):
+    pkg = hml.get_package()
     services = pkg.services
     unique_feature_values = json.loads(services.lake.download_string(analysis_path_categorical))
     training_df = services.lake.download_csv(bucket, csv_path)
     encoded_df = one_hot_encode(training_df, unique_feature_values, throw_on_missing=True)
 
     for nf in numeric_features:
-        encoded_df[nf] = data_frame[nf]
+        encoded_df[nf] = training_df[nf]
 
     return pkg.add_artifact_dataframe(output_name, encoded_df)
 
 
 @hml.op()
-def train_model(
-    pkg: hml.HmlPackage,
-    matrix_path: str,
-    target: str,
-    output_name: str
-):
+def train_model(bucket: str, matrix_path: str, target: str, model_filename: str):
+    pkg = hml.get_package()
     services = pkg.services
     final_df = services.lake.download_csv(bucket, matrix_path)
     targets = final_df[target]
@@ -117,6 +93,7 @@ def train_model(
     os.remove(tmp_path)
 
     return artifact_path
+
 
 # @hml.op()
 # @hml.pass_context

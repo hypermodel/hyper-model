@@ -10,7 +10,10 @@ from kfp import dsl
 from kfp import Client
 from kfp.compiler import Compiler
 from typing import List, Dict, Callable, Optional
-from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
+
+from hypermodel.hml.hml_global import  _pipeline_enter, _pipeline_exit
+from hypermodel.hml.hml_container_op import HmlContainerOp
+from hypermodel.hml.hml_package import HmlPackage
 from hypermodel.platform.abstract.services import PlatformServicesBase
 from hypermodel.kubeflow.kubeflow_client import KubeflowClient
 from hypermodel.kubeflow.deploy import deploy_pipeline
@@ -25,19 +28,19 @@ class HmlPipeline:
         image_url: str,
         package_entrypoint: str,
         op_builders: List[Callable[[HmlContainerOp], HmlContainerOp]],
-        envs: Dict[str, str]
+        envs: Dict[str, str],
     ):
 
         if cli is None:
-            raise(TypeError("Parameter: `cli` must be supplied"))
+            raise (TypeError("Parameter: `cli` must be supplied"))
         if pipeline_func is None:
-            raise(TypeError("Parameter: `pipeline_func` must be supplied"))
+            raise (TypeError("Parameter: `pipeline_func` must be supplied"))
         if services is None:
-            raise(TypeError("Parameter: `services` must be supplied"))
+            raise (TypeError("Parameter: `services` must be supplied"))
         if image_url is None or image_url == "":
-            raise(TypeError("Parameter: `image_url` must be supplied"))
+            raise (TypeError("Parameter: `image_url` must be supplied"))
         if package_entrypoint is None or package_entrypoint == "":
-            raise(TypeError("Parameter: `package_entrypoint` must be supplied"))
+            raise (TypeError("Parameter: `package_entrypoint` must be supplied"))
 
         self.name = pipeline_func.__name__
         self.envs: Dict[str, str] = envs
@@ -75,6 +78,9 @@ class HmlPipeline:
         self.cli_pipeline.add_command(self.cli_all)
         self.cli_pipeline.add_command(self.deploy_dev)
         self.cli_pipeline.add_command(self.deploy_prod)
+
+    def get_package(self) -> HmlPackage:
+        return HmlPackage(name=self.name, services=self.services, pipeline=self)
 
     def _build_dag(self):
         """

@@ -28,17 +28,18 @@ def main():
         k8s_namespace="kubeflow",
     )
     # Set up Environment Varialbes that will apply to all containers...
-    app.with_envs({
-        "GCP_PROJECT": "grwdt-dev",
-        "GCP_ZONE": "australia-southeast1-a",
-        "K8S_CLUSTER": "kf-crashed",
-        "K8S_NAMESPACE": "kubeflow",
-
-        "LAKE_BUCKET": "grwdt-dev-lake",
-        "LAKE_PATH": "hypermodel/demo/car-crashes",
-        "WAREHOUSE_DATASET": "crashed",
-        "WAREHOUSE_LOCATION": "australia-southeast1"
-    })
+    app.with_envs(
+        {
+            "GCP_PROJECT": "grwdt-dev",
+            "GCP_ZONE": "australia-southeast1-a",
+            "K8S_CLUSTER": "kf-crashed",
+            "K8S_NAMESPACE": "kubeflow",
+            "LAKE_BUCKET": "grwdt-dev-lake",
+            "LAKE_PATH": "hypermodel/demo/car-crashes",
+            "WAREHOUSE_DATASET": "crashed",
+            "WAREHOUSE_LOCATION": "australia-southeast1",
+        }
+    )
 
     @hml.pipeline(app.pipelines, cron="0 0 * * *", experiment="demos")
     def crashed_pipeline(message: str = "Hello tez!"):
@@ -64,13 +65,19 @@ def main():
         bucket = "grwdt-dev-lake"
 
         training_table = pipeline.select_into(sql=training_sql, output_dataset="crashed", output_table="crashes_training")
-        training_csv = pipeline.export_csv(bucket=bucket, dataset="crashed", table=training_table, filename=f"{training_table}.csv")
-        features_artifact_cat = pipeline.analyze_categorical_features(bucket=bucket, csv_path=training_csv, output_name="encodings.json", columns=FEATURES_CATEGORICAL)
-        features_artifact_num = pipeline.analyze_numeric_features(bucket=bucket, csv_path=training_csv, output_name="distributions.json", columns=FEATURES_NUMERIC)
+        training_csv = pipeline.export_csv(bucket=bucket, dataset_name="crashed", table_name=training_table, filename=training_table)
+        features_artifact_cat = pipeline.analyze_categorical_features(bucket=bucket, csv_path=training_csv, analysis_artifact_name="encodings.json", columns=FEATURES_CATEGORICAL)
+        features_artifact_num = pipeline.analyze_numeric_features(bucket=bucket, csv_path=training_csv, analysis_artifact_name="distributions.json", columns=FEATURES_NUMERIC)
 
-        matrix_path = pipeline.build_matrix(bucket=bucket, csv_path=training_csv, analysis_path_categorical=features_artifact_cat, numeric_features=FEATURES_NUMERIC, output_name="final.csv")
+        matrix_path = pipeline.build_matrix(
+            bucket=bucket,
+            csv_path=training_csv,
+            analysis_path_categorical=features_artifact_cat,
+            numeric_features=FEATURES_NUMERIC,
+            file_name="final.csv",
+        )
 
-        model_path = pipeline.train_model(matrix_path=matrix_path, target=TARGET, output_name=f"{MODEL_NAME}.joblib")
+        model_path = pipeline.train_model(bucket=bucket, matrix_path=matrix_path, target=TARGET, model_filename=f"{MODEL_NAME}.joblib")
 
         # validation_ref = pipeline.select_into(training_sql, "crashed", "crashes_validation")
 
@@ -97,9 +104,9 @@ def main():
             .with_empty_dir("artifacts", "/artifacts")
             # Pass through environment variables from my CI/CD Environment
             # into my container
-            .with_env("GITLAB_TOKEN", os.environ["GITLAB_TOKEN"])
-            .with_env("GITLAB_PROJECT", os.environ["GITLAB_PROJECT"])
-            .with_env("GITLAB_URL", os.environ["GITLAB_URL"])
+            # .with_env("GITLAB_TOKEN", os.environ["GITLAB_TOKEN"])
+            # .with_env("GITLAB_PROJECT", os.environ["GITLAB_PROJECT"])
+            # .with_env("GITLAB_URL", os.environ["GITLAB_URL"])
         )
         return op
 

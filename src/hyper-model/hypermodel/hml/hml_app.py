@@ -5,10 +5,10 @@ from typing import Dict
 from kfp import dsl
 from hypermodel.hml.hml_pipeline_app import HmlPipelineApp
 from hypermodel.hml.hml_inference_app import HmlInferenceApp
+
 # from hypermodel.hml.model_container import ModelContainer
 from hypermodel.platform.gcp.services import GooglePlatformServices
 from hypermodel.platform.local.services import LocalPlatformServices
-
 
 # This is the default `click` entrypoint for kicking off the command line
 
@@ -53,7 +53,7 @@ class HmlApp:
             cli=self.cli_root,
             image_url=self.image_url,
             package_entrypoint=self.package_entrypoint,
-            envs=self.app_env
+            envs=self.app_env,
         )
 
         self.inference = HmlInferenceApp(
@@ -64,7 +64,7 @@ class HmlApp:
             package_entrypoint=self.package_entrypoint,
             port=inference_port,
             k8s_namespace=k8s_namespace,
-            envs=self.app_env
+            envs=self.app_env,
         )
 
     def with_envs(self, envs):
@@ -93,7 +93,7 @@ class HmlApp:
         if platform == "local":
             return LocalPlatformServices()
 
-        raise(ValueError(f"Unknown Platform: {platform}.  Available options are 'gcp', 'local'"))
+        raise (ValueError(f"Unknown Platform: {platform}.  Available options are 'gcp', 'local'"))
 
     def start(self):
         """
