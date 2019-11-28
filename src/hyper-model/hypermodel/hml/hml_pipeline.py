@@ -11,7 +11,7 @@ from kfp import Client
 from kfp.compiler import Compiler
 from typing import List, Dict, Callable, Optional
 
-from hypermodel.hml.hml_global import  _pipeline_enter, _pipeline_exit
+from hypermodel.hml.hml_global import _pipeline_enter, _pipeline_exit
 from hypermodel.hml.hml_container_op import HmlContainerOp
 from hypermodel.hml.hml_package import HmlPackage
 from hypermodel.platform.abstract.services import PlatformServicesBase
@@ -164,7 +164,7 @@ class HmlPipeline:
 
         # Lets just execure the Pipeline function, calling invoke?
         wrapped = click.command(name=self.name)(self.pipeline_func)
-        for k in self.kwargs:
+        for k in kwargs:
             wrapped = click.option(f"--{k}", callback=_deserialize_option)(wrapped)
 
         run_log = dict()
@@ -207,8 +207,8 @@ class HmlPipeline:
                     self.run_task(d, run_log, kwargs)
 
         # Execute the operation, including the binding of parameters...
-        # This  is
-        hml_op.invoke()
+        #  TODO: We need to make sure that we bind the keyword args here, or it wont work.
+        hml_op.invoke(**kwargs)
 
         run_log[hml_op.k8s_name] = True
 

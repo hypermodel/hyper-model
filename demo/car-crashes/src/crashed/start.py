@@ -66,15 +66,15 @@ def main():
 
         training_table = pipeline.select_into(sql=training_sql, output_dataset="crashed", output_table="crashes_training")
         training_csv = pipeline.export_csv(bucket=bucket, dataset_name="crashed", table_name=training_table, filename=training_table)
-        features_artifact_cat = pipeline.analyze_categorical_features(bucket=bucket, csv_path=training_csv, analysis_artifact_name="encodings.json", columns=FEATURES_CATEGORICAL)
-        features_artifact_num = pipeline.analyze_numeric_features(bucket=bucket, csv_path=training_csv, analysis_artifact_name="distributions.json", columns=FEATURES_NUMERIC)
+        features_artifact_cat = pipeline.analyze_categorical_features(bucket=bucket, csv_path=training_csv, artifact_name="encodings.json", columns=FEATURES_CATEGORICAL)
+        features_artifact_num = pipeline.analyze_numeric_features(bucket=bucket, csv_path=training_csv, artifact_name="distributions.json", columns=FEATURES_NUMERIC)
 
         matrix_path = pipeline.build_matrix(
             bucket=bucket,
             csv_path=training_csv,
             analysis_path_categorical=features_artifact_cat,
             numeric_features=FEATURES_NUMERIC,
-            file_name="final.csv",
+            artifact_name="final.csv",
         )
 
         model_path = pipeline.train_model(bucket=bucket, matrix_path=matrix_path, target=TARGET, model_filename=f"{MODEL_NAME}.joblib")
@@ -141,4 +141,5 @@ def main():
     app.start()
 
 
-# main()
+if __name__== "__main__":
+    main()

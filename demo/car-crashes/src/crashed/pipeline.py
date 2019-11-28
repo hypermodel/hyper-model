@@ -36,7 +36,7 @@ def export_csv(bucket: str, dataset_name: str, table_name: str, filename: str):
 
 
 @hml.op()
-def analyze_categorical_features(bucket: str, csv_path: str, analysis_artifact_name: str, columns: List[str]):
+def analyze_categorical_features(bucket: str, csv_path: str, artifact_name: str, columns: List[str]):
     pkg = hml.get_package()
     services = pkg.services
 
@@ -44,11 +44,11 @@ def analyze_categorical_features(bucket: str, csv_path: str, analysis_artifact_n
     unique_feature_values = get_unique_feature_values(training_df, columns)
 
     # Add the artifact we have just produced
-    return pkg.add_artifact_json(output_name, unique_feature_values)
+    return pkg.add_artifact_json(artifact_name, unique_feature_values)
 
 
 @hml.op()
-def analyze_numeric_features(bucket: str, csv_path: str, analysis_artifact_name: str, columns: List[str]
+def analyze_numeric_features(bucket: str, csv_path: str, artifact_name: str, columns: List[str]
                              ):
     pkg = hml.get_package()
     services = pkg.services
@@ -57,11 +57,11 @@ def analyze_numeric_features(bucket: str, csv_path: str, analysis_artifact_name:
     unique_feature_values = describe_features(training_df, columns)
 
     # Add the artifact we have just produced
-    return pkg.add_artifact_json(output_name, unique_feature_values)
+    return pkg.add_artifact_json(artifact_name, unique_feature_values)
 
 
 @hml.op()
-def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, numeric_features: List[str], file_name: str):
+def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, numeric_features: List[str], artifact_name: str):
     pkg = hml.get_package()
     services = pkg.services
     unique_feature_values = json.loads(services.lake.download_string(analysis_path_categorical))
@@ -71,11 +71,11 @@ def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, num
     for nf in numeric_features:
         encoded_df[nf] = training_df[nf]
 
-    return pkg.add_artifact_dataframe(output_name, encoded_df)
+    return pkg.add_artifact_dataframe(artifact_name, encoded_df)
 
 
 @hml.op()
-def train_model(bucket: str, matrix_path: str, target: str, model_filename: str):
+def train_model(bucket: str, matrix_path: str, target: str, artifact_name: str):
     pkg = hml.get_package()
     services = pkg.services
     final_df = services.lake.download_csv(bucket, matrix_path)
@@ -89,7 +89,7 @@ def train_model(bucket: str, matrix_path: str, target: str, model_filename: str)
     tmp_path = os.path.join("/tmp/", f"{filename}.joblib")
     joblib.dump(model, tmp_path)
 
-    artifact_path = pkg.add_artifact_file(output_name, tmp_path)
+    artifact_path = pkg.add_artifact_file(artifact_name, tmp_path)
     os.remove(tmp_path)
 
     return artifact_path

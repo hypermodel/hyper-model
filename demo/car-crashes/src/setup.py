@@ -21,7 +21,6 @@ REQUIRES = [
     "kfp",
     "xgboost",
     "pandas",
-    "sklearn",
     "xgboost",
     "google-cloud",
     "google-cloud-bigquery",
