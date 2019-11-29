@@ -133,8 +133,8 @@ def main():
 
         (
             deployment.with_gcp_auth("svcacc-tez-kf")
-            .with_empty_dir("tmp", "/tmp")
-            .with_empty_dir("artifacts", "/artifacts")
+                .with_empty_dir("tmp", "/tmp")
+                .with_empty_dir("artifacts", "/artifacts")
         )
         pass
 

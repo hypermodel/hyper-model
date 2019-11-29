@@ -18,7 +18,7 @@ class HmlPackage:
     """
 
     def __init__(
-        self,
+        self: "HmlPackage",
         name: str,
         services: PlatformServicesBase = None,
         op: "HmlContainerOp" = None,
@@ -43,53 +43,54 @@ class HmlPackage:
             self.pipeline = pipeline
 
         self.services = services
+        self.config = self.services.config
 
-    def artifact_path(self, artifact_name: str):
+    def artifact_path(self: "HmlPackage", artifact_name: str):
         """
         Get the path to where we are saving artifacts in the DataLake
         """
         workflow_id = self.op.workflow_id()
         return f"{workflow_id}/artifacts/{artifact_name}"
 
-    def package_path(self):
+    def package_path(self: "HmlPackage"):
         """
         Get the path to the Package in the DataLake
         """
         workflow_id = self.op.workflow_id()
         return f"{workflow_id}/hml-package.json"
 
-    def add_artifact_json(self, name: str, obj: Any):
+    def add_artifact_json(self: "HmlPackage", name: str, obj: Any):
         # Lets save the artifact as JSON to the data lake
         artifact_path = self.artifact_path(name)
         object_json = json.dumps(obj)
-        self.services.lake.upload_string(artifact_path, object_json)
+        self.services.lake.upload_string(self.config.lake_bucket, artifact_path, object_json)
 
         # Then lets update our reference artifact (via the link)
         self.link_artifact(name, artifact_path)
 
         return artifact_path
 
-    def add_artifact_file(self, name: str, file_path: Any):
+    def add_artifact_file(self: "HmlPackage", name: str, file_path: Any):
         # Lets save the artifact as JSON to the data lake
         artifact_path = self.artifact_path(name)
-        self.services.lake.upload(self.services.config.lake_bucket, artifact_path, file_path)
+        self.services.lake.upload(self.config.lake_bucket, artifact_path, file_path)
 
         # Then lets update our reference artifact (via the link)
         self.link_artifact(name, artifact_path)
 
         return artifact_path
 
-    def add_artifact_dataframe(self, name: str, dataframe: pd.DataFrame):
+    def add_artifact_dataframe(self: "HmlPackage", name: str, dataframe: pd.DataFrame):
         # Lets save the artifact as JSON to the data lake
         artifact_path = self.artifact_path(name)
-        self.services.lake.upload_dataframe(self.services.config.lake_bucket, artifact_path, dataframe)
+        self.services.lake.upload_dataframe(self.config.lake_bucket, artifact_path, dataframe)
 
         # Then lets update our reference artifact (via the link)
         self.link_artifact(name, artifact_path)
 
         return artifact_path
 
-    def link_artifact(self, name: str, storage_path: str):
+    def link_artifact(self: "HmlPackage", name: str, storage_path: str):
         # We don't store any state as a part of this object, all operations
         # are designed to minimize the chance of mid-air collisions
         package = self.get()
@@ -97,18 +98,18 @@ class HmlPackage:
         package["updated"] = str(datetime.now())
         self.save(package)
 
-    def save(self, package):
+    def save(self: "HmlPackage", package):
         path = self.package_path()
         json_string = json.dumps(package)
-        self.services.lake.upload_string(path, json_string)
+        self.services.lake.upload_string(self.config.lake_bucket, path, json_string)
 
-    def get(self):
+    def get(self: "HmlPackage"):
         """
         Go to the DataLake and get the PackageData for this pipeline run
         """
         path = self.package_path()
 
-        json_string = self.services.lake.download_string(path)
+        json_string = self.services.lake.download_string(self.config.lake_bucket, path)
         if json_string is None:
             return {
                 "name": self.name,

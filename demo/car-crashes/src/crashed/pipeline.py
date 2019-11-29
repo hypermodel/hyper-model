@@ -31,7 +31,7 @@ def export_csv(bucket: str, dataset_name: str, table_name: str, filename: str):
     bucket_path = pkg.artifact_path(filename)
     bucket_url = services.warehouse.export_csv(bucket, bucket_path, dataset_name, table_name)
 
-    return bucket_url
+    return bucket_path
 
 
 @hml.op()
@@ -63,7 +63,8 @@ def analyze_numeric_features(bucket: str, csv_path: str, artifact_name: str, col
 def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, numeric_features: List[str], artifact_name: str):
     pkg = hml.get_package()
     services = pkg.services
-    unique_feature_values = json.loads(services.lake.download_string(analysis_path_categorical))
+    json_features = services.lake.download_string(bucket, analysis_path_categorical)
+    unique_feature_values = json.loads(json_features)
     training_df = services.lake.download_csv(bucket, csv_path)
     encoded_df = one_hot_encode(training_df, unique_feature_values, throw_on_missing=True)
 
@@ -76,6 +77,7 @@ def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, num
 @hml.op()
 def train_model(bucket: str, matrix_path: str, target: str, artifact_name: str):
     pkg = hml.get_package()
+    config = pkg.services.config
     services = pkg.services
     final_df = services.lake.download_csv(bucket, matrix_path)
     targets = final_df[target]
@@ -85,7 +87,7 @@ def train_model(bucket: str, matrix_path: str, target: str, artifact_name: str):
     model = classifier.fit(feature_matrix, targets, verbose=True)
 
     filename = uuid.uuid4()
-    tmp_path = os.path.join("/tmp/", f"{filename}.joblib")
+    tmp_path = os.path.join(config.temp_path, f"{filename}.joblib")
     joblib.dump(model, tmp_path)
 
     artifact_path = pkg.add_artifact_file(artifact_name, tmp_path)

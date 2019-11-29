@@ -43,6 +43,5 @@ class GooglePlatformConfig(PlatformConfig):
         self.gitlab_project = self.get_env("GITLAB_PROJECT", "")
         self.gitlab_url = self.get_env("GITLAB_URL", "")
 
-        self.temp_path = self.get_env("TEMP_PATH", "/tmp")
 
         self.CHUNK_SIZE = 10485760

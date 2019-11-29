@@ -3,6 +3,7 @@ Helper functions for dealing with categorical features
 """
 
 import pandas as pd
+import math
 from typing import List, Dict
 
 
@@ -23,7 +24,7 @@ def get_unique_feature_values(dataframe: pd.DataFrame, features: List[str]) -> D
     feature_uniques: Dict[str, List[str]] = dict()
     for feature in features:
         unique_features = dataframe[feature].unique()
-        feature_uniques[feature] = unique_features.tolist()
+        feature_uniques[feature] = [str(x) for x in unique_features.tolist()]
     return feature_uniques
 
 
@@ -52,7 +53,7 @@ def one_hot_encode(dataframe: pd.DataFrame, uniques: Dict[str, List[str]], throw
         if throw_on_missing:
             sample_uniques = dataframe[feature].unique()
             for s in sample_uniques:
-                if s not in feature_value_list:
+                if str(s) not in feature_value_list:
                     raise Exception(f"The value '{s}' has not been seen before in feature '{feature}', unable to one_hot_encode")
 
 

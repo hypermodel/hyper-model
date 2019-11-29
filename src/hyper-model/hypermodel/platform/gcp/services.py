@@ -47,3 +47,4 @@ class GooglePlatformServices(PlatformServicesBase):
     @property
     def git(self) -> GitLabHost:
         return self._git
+

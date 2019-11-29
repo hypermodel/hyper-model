@@ -22,13 +22,13 @@ class DataWarehouse(DataWarehouseBase):
     def __init__(self, config: GooglePlatformConfig):
         self.config = config
 
-    def import_csv(self, bucket_name: str, bucket_path: str, dataset: str, table: str) -> bool:
+    def import_csv(self, bucket_name: str, bucket_path: str, dataset: str, table: str, sep:str ="\t") -> bool:
         logging.info(f"DataWarehouse.import_csv {bucket_path} to {dataset}.{table} ...")
         client = self._get_client()
 
         config = LoadJobConfig()
         config.autodetect = True
-        config.field_delimiter = ","
+        config.field_delimiter = sep
 
         
         bucket_url = f"gs://{self.config.lake_path}/{bucket_path}"
@@ -40,7 +40,7 @@ class DataWarehouse(DataWarehouseBase):
 
         return True
 
-    def export_csv(self, bucket_name: str, bucket_path: str, dataset: str, table: str) -> str:
+    def export_csv(self, bucket_name: str, bucket_path: str, dataset: str, table: str, sep:str ="\t") -> str:
         
         bucket_url = f"gs://{bucket_name}/{self.config.lake_path}/{bucket_path}"
 
@@ -51,7 +51,7 @@ class DataWarehouse(DataWarehouseBase):
 
         to_export = TableReference(dataset_ref, table)
         config = ExtractJobConfig()
-        config.field_delimiter = "\t"
+        config.field_delimiter = sep
         config.destination_format = bigquery.DestinationFormat.CSV
 
         extract_job = client.extract_table(to_export, bucket_url, job_config=config)

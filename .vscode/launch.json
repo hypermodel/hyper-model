@@ -11,7 +11,7 @@
       "program": "${workspaceRoot}\\demo\\car-crashes\\src\\crashed\\start.py",
       "args": ["pipelines", "crashed_pipeline", "run-all"],
       "env": {
-        "HML_TMP": "C:\\Temp"
+        "HML_TMP": "C:\\Temp\\"
       }
     },
     {

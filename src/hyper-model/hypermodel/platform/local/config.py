@@ -32,6 +32,4 @@ class LocalConfig(PlatformConfig):
         self.gitlab_project = self.get_env("GITLAB_PROJECT", None)
         self.gitlab_url = self.get_env("GITLAB_URL", None)
 
-        self.temp_path = self.get_env("TEMP_PATH", "/tmp")
-
         self.default_sql_lite_db_file = f"{self.warehouse_location}/default.db"

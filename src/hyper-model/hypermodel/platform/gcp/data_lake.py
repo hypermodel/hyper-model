@@ -43,12 +43,12 @@ class DataLake(DataLakeBase):
 
         return bucket_path
 
-    def upload_dataframe(self, bucket_name: str, bucket_path: str, dataframe: pd.DataFrame) -> str:
+    def upload_dataframe(self, bucket_name: str, bucket_path: str, dataframe: pd.DataFrame, sep:str="\t") -> str:
 
         filename = uuid.uuid4()
         tmp_path = os.path.join("/tmp/", f"{filename}.csv")
 
-        df = pd.to_csv(tmp_path)
+        df = pd.to_csv(tmp_path, sep=sep)
         self.upload(bucket_name, bucket_path, tmp_path)
 
         os.remove(tmp_path)
@@ -79,19 +79,19 @@ class DataLake(DataLakeBase):
         blob = bucket.blob(full_path, chunk_size=self.config.CHUNK_SIZE)
 
         try:
-            string = blob.download_as_string()
+            string:str = blob.download_as_string()
             return string
-        finally:
+        except:
             return None
 
-    def download_csv(self, bucket_name: str, bucket_path: str) -> pd.DataFrame:
+    def download_csv(self, bucket_name: str, bucket_path: str, sep:str="\t") -> pd.DataFrame:
 
         filename = uuid.uuid4()
-        tmp_path = os.path.join("/tmp/", f"{filename}.csv")
+        tmp_path = os.path.join(self.config.temp_path, f"{filename}.csv")
         self.download(bucket_name, bucket_path, tmp_path)
 
-        df = pd.read_csv(tmp_path)
+        df = pd.read_csv(tmp_path, sep =sep )
 
-        os.remove(tmp_path)
+        # os.remove(tmp_path)
 
         return df
