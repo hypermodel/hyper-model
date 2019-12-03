@@ -18,7 +18,7 @@ NAME = "hypermodel"
 VERSION = "0.1.78"
 REQUIRES = [
     "click",
-    "kfp==0.1.34",
+    "kfp",
     "pandas",
     "joblib",
     "google-cloud",

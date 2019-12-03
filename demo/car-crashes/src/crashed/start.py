@@ -74,10 +74,11 @@ def main():
             csv_path=training_csv,
             analysis_path_categorical=features_artifact_cat,
             numeric_features=FEATURES_NUMERIC,
+            target=TARGET,
             artifact_name="final.csv",
         )
 
-        model_path = pipeline.train_model(bucket=bucket, matrix_path=matrix_path, target=TARGET, model_filename=f"{MODEL_NAME}.joblib")
+        model_path = pipeline.train_model(bucket=bucket, matrix_path=matrix_path, target=TARGET, artifact_name=f"{MODEL_NAME}.joblib")
 
         # validation_ref = pipeline.select_into(training_sql, "crashed", "crashes_validation")
 

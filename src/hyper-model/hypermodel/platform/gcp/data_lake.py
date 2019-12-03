@@ -48,7 +48,7 @@ class DataLake(DataLakeBase):
         filename = uuid.uuid4()
         tmp_path = os.path.join("/tmp/", f"{filename}.csv")
 
-        df = pd.to_csv(tmp_path, sep=sep)
+        df = dataframe.to_csv(tmp_path, sep=sep)
         self.upload(bucket_name, bucket_path, tmp_path)
 
         os.remove(tmp_path)
@@ -61,7 +61,7 @@ class DataLake(DataLakeBase):
         if bucket_name is None:
             bucket_name = self.config.lake_bucket
 
-        logging.info(f"DataLake (GCP): downloading gs://{bucket_name}/{bucket_path} -> {destination_local_path}")
+        logging.info(f"DataLake (GCP): Downloading gs://{bucket_name}/{bucket_path} -> {destination_local_path}")
 
         full_path = f"{self.config.lake_path}/{bucket_path}"
         bucket = storage_client.get_bucket(bucket_name)
@@ -72,7 +72,7 @@ class DataLake(DataLakeBase):
     def download_string(self, bucket_name: str, bucket_path: str) -> str:
         storage_client = storage.Client()
 
-        logging.info(f"DataLake (GCP): downloading gs://{bucket_name}/{bucket_path} -> string")
+        logging.info(f"DataLake (GCP): Downloading gs://{bucket_name}/{bucket_path} -> string")
 
         full_path = f"{self.config.lake_path}/{bucket_path}"
         bucket = storage_client.get_bucket(bucket_name)

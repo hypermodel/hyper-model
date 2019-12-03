@@ -171,13 +171,10 @@ class HmlContainerOp(object):
                 unpacked_kwargs[k] = v
 
 
-        ret = self.func(** unpacked_kwargs)
 
-        # Log all my environment variables for debugging purposes.
-        # ToDo: Delete this!
-        # logging.info(f"Executing: {self.pipeline.name}.{self.name}, env:")
-        # for k in os.environ:
-        #     logging.info(f"\t{k}")
+        logging.info(f"{self.pipeline.name}.{self.name}: Executing Operation")
+        ret = self.func(** unpacked_kwargs)
+        logging.info(f"{self.pipeline.name}.{self.name}: Operation Complete!")
 
         output_path = self.pipeline.default_output_path()
         if ret is None:
