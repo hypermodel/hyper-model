@@ -24,11 +24,11 @@ def select_into(sql: str, output_dataset: str, output_table: str):
 
 
 @hml.op()
-def export_csv(bucket: str, dataset_name: str, table_name: str, filename: str):
+def export_csv(bucket: str, dataset_name: str, table_name: str):
     pkg = hml.get_package()
 
     services = pkg.services
-    bucket_path = pkg.artifact_path(filename)
+    bucket_path = pkg.artifact_path(table_name + ".csv")
     bucket_url = services.warehouse.export_csv(bucket, bucket_path, dataset_name, table_name)
 
     return bucket_path

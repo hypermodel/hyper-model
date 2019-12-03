@@ -65,7 +65,7 @@ def main():
         bucket = "grwdt-dev-lake"
 
         training_table = pipeline.select_into(sql=training_sql, output_dataset="crashed", output_table="crashes_training")
-        training_csv = pipeline.export_csv(bucket=bucket, dataset_name="crashed", table_name=training_table, filename=training_table)
+        training_csv = pipeline.export_csv(bucket=bucket, dataset_name="crashed", table_name=training_table)
         features_artifact_cat = pipeline.analyze_categorical_features(bucket=bucket, csv_path=training_csv, artifact_name="encodings.json", columns=FEATURES_CATEGORICAL)
         features_artifact_num = pipeline.analyze_numeric_features(bucket=bucket, csv_path=training_csv, artifact_name="distributions.json", columns=FEATURES_NUMERIC)
 

@@ -1,6 +1,7 @@
 import os
 import tempfile
 from typing import Dict, List, Optional, Callable
+import logging
 from kfp import Client
 from kfp.compiler import compiler
 from datetime import datetime
@@ -30,7 +31,7 @@ class KubeflowClient:
         self.namespace = namespace
         self.kfp_client = Client(host, client_id, namespace)
 
-        self.config = self.kfp_client._load_config(self.host, self.client_id, self.namespace)
+        self.config = self.kfp_client._load_config(self.host, self.client_id, self.namespace, None, None)
 
         # print(f"kfp auth:")
         # print(f"\thost: {self.host}")
@@ -55,9 +56,13 @@ class KubeflowClient:
         try:
             (_, pipeline_package_path) = tempfile.mkstemp(suffix=".zip")
             compiler.Compiler().compile(pipeline_func, pipeline_package_path)
+
+            logging.info(f"Compiled piopeline to: {pipeline_package_path}")
+
             return self.kfp_client.upload_pipeline(pipeline_package_path, pipeline_name)
         finally:
-            os.remove(pipeline_package_path)
+            pass
+            # os.remove(pipeline_package_path)
 
     def create_experiment(self, experiment_name):
         """

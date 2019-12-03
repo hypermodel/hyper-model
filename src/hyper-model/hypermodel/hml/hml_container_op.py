@@ -81,7 +81,7 @@ class HmlContainerOp(object):
                 # This is a hardcoded value
                 p = input_value
                 self.arguments.append(f"--{param_name}")
-                self.arguments.append(input_value)
+                self.arguments.append(json.dumps(input_value))
                 logging.info(f"Binding input for {self.name} -> {param_name}: from PipelineParam ({p.name})")
 
             elif isinstance(input_value, dsl.ContainerOp):
@@ -96,7 +96,7 @@ class HmlContainerOp(object):
             else:
                 # This is a pipeline parameter
                 logging.info(f"Binding input value for {self.name} -> {param_name}: {input_value}")
-                p = dsl.PipelineParam(name=param_name, value=self.kwargs[param_name])
+                p = dsl.PipelineParam(name=param_name, value=json.dumps(self.kwargs[param_name]))
                 self.arguments.append(f"--{param_name}")
                 self.arguments.append("{{inputs.parameters.%s}}" % param_name)
 
