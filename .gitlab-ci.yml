@@ -78,7 +78,7 @@ demo-crashed-build:
   when: manual
   script:
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
-    - docker build -t $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA -f ./demo/car-crashes/pipeline_op.Dockerfile .
+    - docker build -t $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA -f ./demo/car-crashes/deploy/crashed.Dockerfile .
     - docker push $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
 
 demo-crashed-deploy:
@@ -115,8 +115,9 @@ push-dockerhub-app:
   stage: release
   dependencies:
     - build-image-hyper-model
-  only:
-    - release/*
+  when: manual
+  # only:
+  #   - release/*
   script:
     # Login to dockerhub
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
