@@ -111,7 +111,7 @@ demo-crashed-build:
 demo-crashed-deploy:
   stage: test-demo-crashed
   dependencies:
-    - demo-crashed-build
+    - push-dockerhub-app
   when: manual
   script:
     # Make sure that we know where our docker image is at
