@@ -147,6 +147,7 @@ image-hypermodel-base-alpine:
   when: manual
   script:
     - echo "Building..."
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base-alpine.Dockerfile ./infra/docker
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION
 
@@ -155,6 +156,7 @@ image-hypermodel-base-buster:
   when: manual
   script:
     - echo "Building..."
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:buster-$VERSION -f ./infra/docker/hypermodel-base-buster.Dockerfile ./infra/docker
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:buster-$VERSION
 
@@ -163,5 +165,6 @@ image-hypermodel-cicd-gitlab:
   when: manual
   script:
     - echo "Building..."
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION -f ./infra/docker/hypermodel-cicd-gitlab.Dockerfile ./infra/docker
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION
