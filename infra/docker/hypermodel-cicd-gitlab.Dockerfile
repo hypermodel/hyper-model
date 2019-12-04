@@ -3,7 +3,7 @@ FROM growingdata/hypermodel-base:buster-0.1.80
 ENV KUBEFLOW_VERSION="0.7.0"
 ENV TERRAFORM_VERSION="0.12.8"
 
-RUN apt-get install wget
+RUN apt install wget
 
 # Install Kubeflow
 RUN mkdir /kubeflow
