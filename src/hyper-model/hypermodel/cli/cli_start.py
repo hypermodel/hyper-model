@@ -14,7 +14,7 @@ config = GooglePlatformConfig()
 @click.pass_context
 def cli(ctx):
     """hml"""
-    ctx.obj["config"] = GooglePlatformConfig()
+    # ctx.obj["config"] = GooglePlatformConfig()
 
 
 def main():
