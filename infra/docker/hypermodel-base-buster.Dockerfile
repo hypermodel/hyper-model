@@ -1,5 +1,9 @@
 FROM python:3.8-slim-buster
 
+
+ENV KUBEFLOW_VERSION="0.7.0"
+ENV TERRAFORM_VERSION="0.12.8"
+
 # Install all my packages
 RUN pip install --upgrade pip
 RUN pip install \
@@ -34,6 +38,7 @@ RUN add-apt-repository \
    $(lsb_release -cs) \
    stable"
 RUN apt-get update && apt-get install  -qq -y docker-ce
+
 
 # Install Kubeflow
 RUN mkdir /kubeflow
