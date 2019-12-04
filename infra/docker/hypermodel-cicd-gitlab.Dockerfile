@@ -4,7 +4,8 @@ ENV KUBEFLOW_VERSION="0.7.0"
 ENV TERRAFORM_VERSION="0.12.8"
 
 RUN apt-get update && apt-get install -qq -y \
-    wget
+    wget \
+    curl
 
 # Install Kubeflow
 RUN mkdir /kubeflow

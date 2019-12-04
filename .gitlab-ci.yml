@@ -70,6 +70,38 @@ build-image-hyper-model:
     - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG -f ./infra/docker/hypermodel.Dockerfile ./src/hyper-model
     - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
 
+###############################################################
+###  RELEASE
+###############################################################
+push-dockerhub-app:
+  stage: release
+  dependencies:
+    - build-image-hyper-model
+  when: manual
+  # only:
+  #   - release/*
+  script:
+    # Login to dockerhub
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+    # Pull the image I built during  `build-image-hyper-model` and re-tag it
+    - docker pull $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
+    - docker tag $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG $IMAGE_DOCKERHUB_HYPERMODEL
+    - docker tag $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
+    # Push my images, both as a version and as the latest
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
+
+push-pip:
+  stage: release
+  dependencies:
+    - build-image-hyper-model
+  only:
+    - release/*
+  script:
+    # Update HyperModel since we make lots of changes to it
+    - pip install -e ./src/hyper-model
+    - python publish_pip.py
+
 #######################################
 ####  TEST DEMO APPS
 #######################################
@@ -111,38 +143,6 @@ demo-crashed-deploy:
 
     # Do the actual deployment to Kubeflow to make sure everything works as expected
     - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $K8S_NAMESPACE
-
-###############################################################
-###  RELEASE
-###############################################################
-push-dockerhub-app:
-  stage: release
-  dependencies:
-    - build-image-hyper-model
-  when: manual
-  # only:
-  #   - release/*
-  script:
-    # Login to dockerhub
-    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
-    # Pull the image I built during  `build-image-hyper-model` and re-tag it
-    - docker pull $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
-    - docker tag $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG $IMAGE_DOCKERHUB_HYPERMODEL
-    - docker tag $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
-    # Push my images, both as a version and as the latest
-    - docker push $IMAGE_DOCKERHUB_HYPERMODEL
-    - docker push $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
-
-push-pip:
-  stage: release
-  dependencies:
-    - build-image-hyper-model
-  only:
-    - release/*
-  script:
-    # Update HyperModel since we make lots of changes to it
-    - pip install -e ./src/hyper-model
-    - python publish_pip.py
 
 #######################################
 ####  INFRA
