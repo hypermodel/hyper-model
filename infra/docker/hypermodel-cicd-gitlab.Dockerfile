@@ -4,12 +4,15 @@ ENV KUBEFLOW_VERSION="0.7.0"
 ENV TERRAFORM_VERSION="0.12.8"
 
 RUN apt-get update && apt-get install -qq -y \
-    wget \
+    apt-transport-https \
+    ca-certificates \
     curl \
-    unzip \
-    docker
+    gnupg2 \
+    software-properties-common \
+    wget \
+    unzip 
 
-# Doocker
+# Docker section 
 RUN apt-get update && apt-get install -qq -y \
      apt-transport-https \
      ca-certificates \
@@ -22,7 +25,7 @@ RUN add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/debian \
    $(lsb_release -cs) \
    stable"
-RUN apt-get install docker-ce
+RUN apt-get update && apt-get install  -qq -y docker-ce
 
 # Install Kubeflow
 RUN mkdir /kubeflow
