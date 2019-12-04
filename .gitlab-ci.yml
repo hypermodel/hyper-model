@@ -16,8 +16,8 @@ stages:
   - infra
   - build
   - test
-  - test-demo-crashed
   - deploy
+  - test-demo-crashed
   - release
 
 before_script:
@@ -72,8 +72,6 @@ build-image-hyper-model:
 
 push-dockerhub-app:
   stage: deploy
-  dependencies:
-    - build-image-hyper-model
   when: manual
   # only:
   #   - release/*
@@ -90,10 +88,8 @@ push-dockerhub-app:
 
 push-pip:
   stage: deploy
-  dependencies:
-    - build-image-hyper-model
-  only:
-    - release/*
+  # only:
+  #   - release/*
   script:
     # Update HyperModel since we make lots of changes to it
     - pip install -e ./src/hyper-model
