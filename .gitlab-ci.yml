@@ -70,11 +70,8 @@ build-image-hyper-model:
     - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG -f ./infra/docker/hypermodel.Dockerfile ./src/hyper-model
     - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
 
-###############################################################
-###  RELEASE
-###############################################################
 push-dockerhub-app:
-  stage: release
+  stage: deploy
   dependencies:
     - build-image-hyper-model
   when: manual
@@ -92,7 +89,7 @@ push-dockerhub-app:
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
 
 push-pip:
-  stage: release
+  stage: deploy
   dependencies:
     - build-image-hyper-model
   only:
