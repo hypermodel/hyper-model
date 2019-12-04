@@ -61,7 +61,7 @@ build-docs:
 #######################################
 ####  DEPLOY
 #######################################
-build-image-hyper-model:
+push-hypermodel-gcr:
   stage: deploy
   dependencies:
     - build-docs
@@ -70,7 +70,7 @@ build-image-hyper-model:
     - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG -f ./infra/docker/hypermodel.Dockerfile ./src/hyper-model
     - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
 
-push-dockerhub-app:
+push-hypermodel-dockerhub:
   stage: deploy
   when: manual
   # only:
@@ -101,7 +101,7 @@ push-pip:
 demo-crashed-build:
   stage: test-demo-crashed
   dependencies:
-    - push-dockerhub-app
+    - push-hypermodel-dockerhub
   when: manual
   script:
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
@@ -111,7 +111,7 @@ demo-crashed-build:
 demo-crashed-deploy:
   stage: test-demo-crashed
   dependencies:
-    - push-dockerhub-app
+    - push-hypermodel-dockerhub
   when: manual
   script:
     # Make sure that we know where our docker image is at
