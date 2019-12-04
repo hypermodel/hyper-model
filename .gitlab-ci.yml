@@ -6,6 +6,8 @@ services:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_HOST: tcp://localhost:2375
+  DOCKER_TLS_CERTDIR: ""
+
   CLUSTER_ZONE: australia-southeast1-a
   GIT_SUBMODULE_STRATEGY: normal # do not recursively set up submodules.  We have istio-cni as a submodule.
   GIT_DEPTH: "3"
