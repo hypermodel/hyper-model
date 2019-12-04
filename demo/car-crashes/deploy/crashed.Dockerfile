@@ -1,12 +1,8 @@
 # FROM growingdata/hypermodel:latest
 FROM growingdata/hypermodel-base:buster-0.1.80
 
-
-
 # For "crashed"
-RUN apt-get update && apt-get install -qq -y \
-    xgboost \
-    sklearn 
+RUN pip install xgboost
 
 ADD ./demo/car-crashes/src /pkg_src/demo-car-crashes
 ADD ./src/hyper-model /pkg_src/hyper-model

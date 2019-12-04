@@ -88,6 +88,7 @@ push-hypermodel-dockerhub:
 
 push-pip:
   stage: deploy
+  when: manual
   # only:
   #   - release/*
   script:
