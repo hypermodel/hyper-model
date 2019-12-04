@@ -7,9 +7,6 @@ from hypermodel.cli.groups.lake import lake
 from hypermodel.cli.groups.k8s import k8s
 
 
-config = GooglePlatformConfig()
-
-
 @click.group()
 @click.pass_context
 def cli(ctx):
