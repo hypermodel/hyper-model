@@ -30,14 +30,6 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
 RUN unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 RUN mv terraform /usr/local/bin/
 
-
-# Make Python 3 the default
-RUN mv /usr/bin/python /usr/bin/python27
-RUN mv /usr/bin/pip /usr/bin/pip27
-
-RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN ln -s /usr/bin/pip3 /usr/bin/pip
-
 RUN docker --version 
 RUN python --version
 RUN pip --version
