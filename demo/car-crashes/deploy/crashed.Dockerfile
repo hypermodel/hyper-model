@@ -4,7 +4,7 @@ FROM growingdata/hypermodel-base:buster-0.1.80
 
 
 # For "crashed"
-RUN pip install \
+RUN apt-get update && apt-get install -qq -y \
     xgboost \
     sklearn 
 

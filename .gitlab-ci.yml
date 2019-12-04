@@ -51,7 +51,7 @@ build-docs:
   # Generate documentation using sphinx (which is also a pseudo build step)
   stage: build
   script:
-    - echo "Building.documentation.."
+    - echo "Building.documentation..."
     # Make sure that we install our package first
     - pip install -e ./src/hyper-model
     # Make the documentation
