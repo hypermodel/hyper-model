@@ -75,6 +75,8 @@ build-image-hyper-model:
 #######################################
 demo-crashed-build:
   stage: test-demo-crashed
+  dependencies:
+    - push-dockerhub-app
   when: manual
   script:
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
@@ -83,6 +85,8 @@ demo-crashed-build:
 
 demo-crashed-deploy:
   stage: test-demo-crashed
+  dependencies:
+    - demo-crashed-build
   when: manual
   script:
     # Make sure that we know where our docker image is at
