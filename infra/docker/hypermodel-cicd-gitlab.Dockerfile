@@ -1,36 +1,6 @@
-FROM growingdata/hypermodel-base:alpine-0.1.75
+FROM growingdata/hypermodel-base:buster-0.1.80
 
-
-RUN apk --no-cache add python3 python3-dev
-
-# Install Docker
-RUN apk add docker curl
-#############################################################################
-# Install Gcloud
-#############################################################################
-ARG CLOUD_SDK_VERSION=258.0.0
-ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
-
-ENV PATH /google-cloud-sdk/bin:$PATH
-RUN apk --no-cache add \
-    libffi-dev openssl-dev python-dev py-pip build-base \
-    python \
-    py-crcmod \
-    bash \
-    libc6-compat \
-    openssh-client \
-    git \
-    gnupg \
-    && curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
-    tar xzf google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
-    rm google-cloud-sdk-${CLOUD_SDK_VERSION}-linux-x86_64.tar.gz && \
-    gcloud config set core/disable_usage_reporting true && \
-    gcloud config set component_manager/disable_update_check true && \
-    gcloud config set metrics/environment github_docker_image && \
-    gcloud --version
-VOLUME ["/root/.config"]
-
-ENV KUBEFLOW_VERSION="0.6.2"
+ENV KUBEFLOW_VERSION="0.7.0"
 ENV TERRAFORM_VERSION="0.12.8"
 
 # Install Kubeflow

@@ -7,6 +7,10 @@ RUN pip install --upgrade pip
 RUN pip install cython
 RUN pip install pymssql
 
+
+RUN apk --no-cache add \
+    libffi-dev openssl-dev python-dev py-pip build-base
+
 RUN apk add --update --no-cache \
     --virtual=.build-dependencies \
     git && \

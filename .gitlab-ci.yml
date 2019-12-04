@@ -11,12 +11,12 @@ variables:
   GIT_DEPTH: "3"
 
 stages:
+  - infra
   - build
   - test
   - test-demo-crashed
   - deploy
   - release
-  - infra
 
 before_script:
   - export GCR_PROJECT="hyper-model-ops"
@@ -140,19 +140,25 @@ push-pip:
 #######################################
 ####  INFRA
 #######################################
-image-hypermodel-base:
-  stage: release
-  only:
-    - release/*
+image-hypermodel-base-alpine:
+  stage: infra
+  when: manual
   script:
     - echo "Building..."
-    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base.Dockerfile ./infra/docker
+    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base-alpine.Dockerfile ./infra/docker
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION
 
+image-hypermodel-base-buster:
+  stage: infra
+  when: manual
+  script:
+    - echo "Building..."
+    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:buster-$VERSION -f ./infra/docker/hypermodel-base-buster.Dockerfile ./infra/docker
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:buster-$VERSION
+
 image-hypermodel-cicd-gitlab:
-  stage: release
-  only:
-    - release/*
+  stage: infra
+  when: manual
   script:
     - echo "Building..."
     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION -f ./infra/docker/hypermodel-cicd-gitlab.Dockerfile ./infra/docker
