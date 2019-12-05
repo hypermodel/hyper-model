@@ -9,7 +9,7 @@ variables:
   DOCKER_TLS_CERTDIR: ""
 
   CLUSTER_ZONE: australia-southeast1-a
-  GIT_SUBMODULE_STRATEGY: normal # do not recursively set up submodules.  We have istio-cni as a submodule.
+  GIT_SUBMODULE_STRATEGY: normal
   GIT_DEPTH: "3"
 
 stages:
@@ -125,7 +125,7 @@ demo-crashed-deploy:
     - pip install -e ./src/hyper-model
 
     # Install the demo app we are going to deploy
-    - pip install -e ./demo/car-crashes
+    - pip install -e ./demo/car-crashes/src
 
     # Do the actual deployment to Kubeflow to make sure everything works as expected
     - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $K8S_NAMESPACE
