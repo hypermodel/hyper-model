@@ -29,7 +29,11 @@ class KubeflowClient:
         self.host = host
         self.client_id = client_id
         self.namespace = namespace
+
+        logging.info(f"KubeflowClient: host: {host}, client_id: {client_id}")
         self.kfp_client = Client(host, client_id, namespace)
+
+
 
         self.config = self.kfp_client._load_config(self.host, self.client_id, self.namespace, None, None)
 

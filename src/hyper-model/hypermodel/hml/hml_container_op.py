@@ -139,7 +139,7 @@ class HmlContainerOp(object):
     def _build_command(self):
         wrapped = click.command(name=self.name)(self.invoke)
         for k in self.kwargs:
-            logging.info(f"Binding click option for{self.name} -> --{k}")
+            logging.info(f"Binding click option for: {self.name} -> --{k}")
             wrapped = click.option(f"--{k}", callback=_deserialize_option)(wrapped)
 
         return wrapped
