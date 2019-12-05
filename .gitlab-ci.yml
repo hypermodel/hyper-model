@@ -117,15 +117,9 @@ demo-crashed-deploy:
     - export KF_DOCKER_IMAGE=$DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
 
     # Dployment configuration
-    - export GCP_PROJECT="grwdt-dev"
-    - export GCP_ZONE="australia-southeast1-a"
-    - export KFAPP="kf-crashed"
-
-    - export K8S_NAMESPACE=kubeflow
-    - export K8S_CLUSTER="kf-crashed"
     - export GOOGLE_APPLICATION_CREDENTIALS=./kubeflow_ci_svcacc.json
     - echo "$KUBEFLOW_CI_SVCACC" > ./kubeflow_ci_svcacc.json
-    - gcloud container clusters get-credentials $KFAPP --zone $GCP_ZONE --project $GCP_PROJECT
+    - gcloud container clusters get-credentials $K8S_CLUSTER --zone $GCP_ZONE --project $GCP_PROJECT
 
     # Install HyperModel
     - pip install -e ./src/hyper-model
