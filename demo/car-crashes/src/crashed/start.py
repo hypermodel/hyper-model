@@ -17,7 +17,7 @@ def main():
     if "DOCKERHUB_IMAGE" in os.environ and "CI_COMMIT_SHA" in os.environ:
         image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
     else:
-        image_url = "growingdata/demo-crashed:eb587be2c661e83f7f667a4c8f73f42858047461"
+        image_url = "growingdata/demo-crashed"
 
     app = hml.HmlApp(
         name="car-crashes",
