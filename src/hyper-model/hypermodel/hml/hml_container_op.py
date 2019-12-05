@@ -187,7 +187,7 @@ class HmlContainerOp(object):
 
             # It also appears that kubeflow ill quote all paramters, even where
             # they have already been quotes and then "click" will pass through
-            #  double quoted strings so we need to strip them as well.
+            # double quoted strings so we need to strip them as well.
             for k in unpacked_kwargs:
                  unpacked_kwargs[k] = unpacked_kwargs[k].strip("\"")
 
