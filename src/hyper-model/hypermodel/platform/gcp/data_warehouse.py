@@ -80,8 +80,9 @@ class DataWarehouse(DataWarehouseBase):
             logging.info(f"DataWarehouse.select_into -> {output_dataset}.{output_table}: {query_job.state} (processed {mb}mb)")
             return True
         except:
-            logging.error(f"DataWarehouse.select_into -> Exception: \n\t{query_job.error_result.message}")
-            return False
+            msg = query_job.error_result["message"]
+            logging.error(f"DataWarehouse.select_into -> Exception: \n\t{msg}")
+            raise
 
     def dataframe_from_table(self, dataset: str, table: str) -> pd.DataFrame:
         logging.info(f"DataWarehouse.dataframe_from_table -> {dataset}.{table}")
@@ -102,7 +103,7 @@ class DataWarehouse(DataWarehouseBase):
         except Exception as e:
             message = str(e)
             logging.error(f"DataWarehouse.dataframe_from_query -> Exception: \n\t{message}")
-            return None
+            raise
 
     def dataframe_from_query(self, query: str) -> pd.DataFrame:
         logging.info(f"DataWarehouse.dataframe_from_query")
@@ -120,7 +121,7 @@ class DataWarehouse(DataWarehouseBase):
         except Exception as e:
             message = str(e)
             logging.error(f"DataWarehouse.dataframe_from_query -> Exception: \n\t{message}")
-            return None
+            raise
 
     def dry_run(self, query: str) -> List[SqlColumn]:
         client = self._get_client()
