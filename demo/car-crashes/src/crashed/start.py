@@ -14,8 +14,8 @@ from crashed.shared import MODEL_NAME
 def main():
     # Create a reference to our "App" object which maintains state
     # about both the Inference and Pipeline phases of the model
-    if "DOCKERHUB_IMAGE" in os.environ and "CI_COMMIT_SHA" in os.environ:
-        image_url = os.environ["DOCKERHUB_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
+    if "KF_DOCKER_IMAGE" in os.environ and "CI_COMMIT_SHA" in os.environ:
+        image_url = os.environ["KF_DOCKER_IMAGE"] + ":" + os.environ["CI_COMMIT_SHA"]
     else:
         image_url = "growingdata/demo-crashed"
 
