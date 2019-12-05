@@ -64,6 +64,8 @@ class HmlContainerOp(object):
         # self.cli_command = click.command(name=self.name)(self.invoke)
         self.cli_command = self._build_command()
 
+        self.is_running_in_single_process = False
+
         self.with_empty_dir("hml-tmp", "/hml-tmp")
 
         self._container_environment()
@@ -99,6 +101,7 @@ class HmlContainerOp(object):
                 p = dsl.PipelineParam(name=param_name, value=json.dumps(self.kwargs[param_name]))
                 self.arguments.append(f"--{param_name}")
                 self.arguments.append("{{inputs.parameters.%s}}" % param_name)
+
 
             self.inputs.append(p)
 
@@ -136,11 +139,15 @@ class HmlContainerOp(object):
     def _build_command(self):
         wrapped = click.command(name=self.name)(self.invoke)
         for k in self.kwargs:
+            logging.info(f"Binding click option for{self.name} -> --{k}")
             wrapped = click.option(f"--{k}", callback=_deserialize_option)(wrapped)
 
         return wrapped
 
-    def invoke(self):
+    def set_running_in_single_process(self):
+        self.is_running_in_single_process = True
+
+    def invoke(self, **kwargs):
         """
         Actually invoke the function that this ContainerOp refers
         to (for testing / execution in the container)
@@ -157,19 +164,26 @@ class HmlContainerOp(object):
 
         _bind_package(package)
 
-        # Lets go through my kwargs, looking for things that are of type "ContainerOp"
-        # and where they are, lets update their value to their return value (unpoack)
-        unpacked_kwargs = dict()
-        for k in self.kwargs:
-            v = self.kwargs[k]
-            if isinstance(v, dsl.ContainerOp):
-                op = v.hml_op
-                if not op.has_invoked:
-                    raise(Exception(f"{self.name}: Unable to invoke, argument '{k} has not been invoked"))
-                unpacked_kwargs[k] = op.return_value
-            else:
-                unpacked_kwargs[k] = v
 
+        # When we do a "run-all", we need to make sure that all the kwargs are bound using
+        # the current execution context. However, when we are just running a single step
+        # we need to trust `**kwargs` as it will be all that we have.
+        if self.is_running_in_single_process:
+            # Lets go through my kwargs, looking for things that are of type "ContainerOp"
+            # and where they are, lets update their value to their return value (unpoack)
+            unpacked_kwargs = dict()
+            for k in self.kwargs:
+                v = self.kwargs[k]
+                if isinstance(v, dsl.ContainerOp):
+                    op = v.hml_op
+                    if not op.has_invoked:
+                        raise(Exception(f"{self.name}: Unable to invoke, argument '{k} has not been invoked"))
+                    unpacked_kwargs[k] = op.return_value
+                else:
+                    unpacked_kwargs[k] = v
+        else:
+            # Just trust "click" to pass in the correct parameters
+            unpacked_kwargs = kwargs
 
 
         logging.info(f"{self.pipeline.name}.{self.name}: Executing Operation")
@@ -179,6 +193,8 @@ class HmlContainerOp(object):
         output_path = self.pipeline.default_output_path()
         if ret is None:
             ret = {}
+
+    
 
         logging.info(f"Writing output for {self.pipeline.name}.{self.name} to {output_path}")
         with open(output_path, "w") as f:

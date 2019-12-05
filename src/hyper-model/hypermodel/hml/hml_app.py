@@ -47,7 +47,7 @@ class HmlApp:
         # Environment variables bound at the App level
         self.app_env: Dict[str, str] = dict()
 
-        self.pipelines = HmlPipelineApp(
+        self.pipelines: HmlPipelineApp = HmlPipelineApp(
             name=name,
             services=self.services,
             cli=self.cli_root,
@@ -56,7 +56,7 @@ class HmlApp:
             envs=self.app_env,
         )
 
-        self.inference = HmlInferenceApp(
+        self.inference: HmlInferenceApp = HmlInferenceApp(
             name=name,
             services=self.services,
             cli=self.cli_root,

@@ -199,6 +199,10 @@ class HmlPipeline:
         task = self.task_map[task_name]
         hml_op = self.ops_dict[task_name]
 
+        # Let the "op" know not to expect paramters from the call to "invoke" but rather
+        # to chase them down by executing child steps / using cached values as required 
+        hml_op.set_running_in_single_process()
+
         # Run my dependencies recusively
         if "dependencies" in task:
             for d in task["dependencies"]:
@@ -222,6 +226,10 @@ class HmlPipeline:
             logging.warning(f"Unable to load temp_path from $HML_TMP, using system value: '{temp_path}'")
         else:
             temp_path = os.environ["HML_TMP"]
+
+        
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
 
         return os.path.join(temp_path, "default-output.json")
 

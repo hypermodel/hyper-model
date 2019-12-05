@@ -1,5 +1,5 @@
 {
-  "python.pythonPath": "C:\\Users\\Tez\\.conda\\envs\\hml-dev\\python.exe",
+  "python.pythonPath": "C:\\Users\\Tez\\.conda\\envs\\hml-dev-38\\python.exe",
   "python.linting.mypyEnabled": true,
   "python.linting.pylintEnabled": false,
   "python.linting.pylintUseMinimalCheckers": false,
