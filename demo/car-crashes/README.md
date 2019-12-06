@@ -11,3 +11,14 @@ cd src
 # Install the `demo-crashed` package locally
 pip install -e .
 ```
+
+## Environment variables required
+
+```
+export DOCKERHUB_IMAGE=growingdata/demo-crashed
+export CI_COMMIT_SHA=latest
+
+export GITLAB_URL=https://gitlab.com/
+export GITLAB_PROJECT=growingdata.hypermodel/demo-car-crashes
+export GITLAB_TOKEN=XXXXXXXXXXXX
+```

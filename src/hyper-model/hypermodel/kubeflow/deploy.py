@@ -16,7 +16,8 @@ import importlib.util
 import inspect
 import logging
 from .kubeflow_client import KubeflowClient
-from hypermodel.hml.hml_container_op import HmlContainerOp, _pipeline_enter, _pipeline_exit
+from hypermodel.hml.hml_container_op import HmlContainerOp
+from hypermodel.hml.hml_global import _pipeline_enter, _pipeline_exit
 
 
 def deploy_pipeline(pipeline, environment: str= "dev", host: Optional[str]= None, client_id: Optional[str]= None, namespace: Optional[str]= None):

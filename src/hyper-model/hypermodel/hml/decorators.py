@@ -91,6 +91,8 @@ def deploy_op(pipeline_app: HmlPipelineApp):
         The decorated function
     """
 
+    logging.info(f"@deploy_op.{pipeline_app.name}")
+
     def _register(func):
         # Register this function as an initializer
         pipeline_app.on_deploy(func)

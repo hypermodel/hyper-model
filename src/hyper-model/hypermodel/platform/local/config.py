@@ -19,8 +19,8 @@ class LocalConfig(PlatformConfig):
         self.lake_bucket = self.get_env("LAKE_BUCKET",os.path.join(testConfig.get_base_folder(),"sqlite_lake_bucket"))
         self.lake_path = self.get_env("LAKE_PATH")
 
-        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET')
-        self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", os.path.join(testConfig.get_base_folder(),"data"))
+        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET', "hyper_model")
+        self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", "./data")
 
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')
         self.k8s_cluster = self.get_env('K8S_CLUSTER')
@@ -35,15 +35,4 @@ class LocalConfig(PlatformConfig):
         self.gitlab_project = self.get_env("GITLAB_PROJECT", None)
         self.gitlab_url = self.get_env("GITLAB_URL", None)
 
-        self.temp_path = self.get_env("TEMP_PATH", os.path.join(testConfig.get_base_folder(),"tmp"))
-
-        self.default_sql_lite_db_file = os.path.join(self.warehouse_location,"default.db")
-
-
-    def __str__(self):
-        return "LocalConfig(PlatformConfig)"
-
-
-
-
-
+        self.default_sql_lite_db_file = f"{self.warehouse_location}/default.db"

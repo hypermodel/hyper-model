@@ -1,4 +1,4 @@
-image: growingdata/hypermodel-cicd:gitlab-0.1.75
+image: growingdata/hypermodel-base:buster-0.1.80
 
 services:
   - docker:dind
@@ -6,17 +6,19 @@ services:
 variables:
   DOCKER_DRIVER: overlay2
   DOCKER_HOST: tcp://localhost:2375
+  DOCKER_TLS_CERTDIR: ""
+
   CLUSTER_ZONE: australia-southeast1-a
-  GIT_SUBMODULE_STRATEGY: normal # do not recursively set up submodules.  We have istio-cni as a submodule.
+  GIT_SUBMODULE_STRATEGY: normal
   GIT_DEPTH: "3"
 
 stages:
+  - infra
   - build
   - test
-  - test-demo-crashed
   - deploy
+  - test-demo-crashed
   - release
-  - infra
 
 before_script:
   - export GCR_PROJECT="hyper-model-ops"
@@ -49,7 +51,7 @@ build-docs:
   # Generate documentation using sphinx (which is also a pseudo build step)
   stage: build
   script:
-    - echo "Building.documentation.."
+    - echo "Building.documentation..."
     # Make sure that we install our package first
     - pip install -e ./src/hyper-model
     # Make the documentation
@@ -59,7 +61,7 @@ build-docs:
 #######################################
 ####  DEPLOY
 #######################################
-build-image-hyper-model:
+push-hypermodel-gcr:
   stage: deploy
   dependencies:
     - build-docs
@@ -68,53 +70,11 @@ build-image-hyper-model:
     - docker build -t $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG -f ./infra/docker/hypermodel.Dockerfile ./src/hyper-model
     - docker push $IMAGE_GCR_HYPERMODEL:$CI_COMMIT_REF_SLUG
 
-#######################################
-####  TEST DEMO APPS
-#######################################
-demo-crashed-build:
-  stage: test-demo-crashed
+push-hypermodel-dockerhub:
+  stage: deploy
   when: manual
-  script:
-    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
-    - docker build -t $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA -f ./demo/car-crashes/pipeline_op.Dockerfile .
-    - docker push $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
-
-demo-crashed-deploy:
-  stage: test-demo-crashed
-  when: manual
-  script:
-    # Make sure that we know where our docker image is at
-    - export KF_DOCKER_IMAGE=$DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
-
-    # Dployment configuration
-    - export GCP_PROJECT="grwdt-dev"
-    - export GCP_ZONE="australia-southeast1-a"
-    - export KFAPP="kf-crashed"
-
-    - export K8S_NAMESPACE=kubeflow
-    - export K8S_CLUSTER="kf-crashed"
-    - export GOOGLE_APPLICATION_CREDENTIALS=./kubeflow_ci_svcacc.json
-    - echo "$KUBEFLOW_CI_SVCACC" > ./kubeflow_ci_svcacc.json
-    - gcloud container clusters get-credentials $KFAPP --zone $GCP_ZONE --project $GCP_PROJECT
-
-    # Install HyperModel
-    - pip install -e ./src/hyper-model
-
-    # Install the demo app we are going to deploy
-    - pip install -e ./demo/car-crashes
-
-    # Do the actual deployment to Kubeflow to make sure everything works as expected
-    - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $K8S_NAMESPACE
-
-###############################################################
-###  RELEASE
-###############################################################
-push-dockerhub-app:
-  stage: release
-  dependencies:
-    - build-image-hyper-model
-  only:
-    - release/*
+  # only:
+  #   - release/*
   script:
     # Login to dockerhub
     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
@@ -127,33 +87,66 @@ push-dockerhub-app:
     - docker push $IMAGE_DOCKERHUB_HYPERMODEL:$VERSION
 
 push-pip:
-  stage: release
-  dependencies:
-    - build-image-hyper-model
-  only:
-    - release/*
+  stage: deploy
+  when: manual
+  # only:
+  #   - release/*
   script:
     # Update HyperModel since we make lots of changes to it
     - pip install -e ./src/hyper-model
     - python publish_pip.py
 
 #######################################
+####  TEST DEMO APPS
+#######################################
+demo-crashed-build:
+  stage: test-demo-crashed
+  dependencies:
+    - push-hypermodel-dockerhub
+  script:
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+    - docker build -t $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA -f ./demo/car-crashes/deploy/crashed.Dockerfile .
+    - docker push $DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
+
+demo-crashed-deploy:
+  stage: test-demo-crashed
+  dependencies:
+    - push-hypermodel-dockerhub
+  script:
+    # Make sure that we know where our docker image is at
+    - export KF_DOCKER_IMAGE=$DOCKERHUB_DEMOCRASHED:$CI_COMMIT_SHA
+
+    # Dployment configuration
+    - export GOOGLE_APPLICATION_CREDENTIALS=./kubeflow_ci_svcacc.json
+    - echo "$KUBEFLOW_CI_SVCACC" > ./kubeflow_ci_svcacc.json
+    - gcloud container clusters get-credentials $K8S_CLUSTER --zone $GCP_ZONE --project $GCP_PROJECT
+
+    # Install HyperModel
+    - pip install -e ./src/hyper-model
+
+    # Install the demo app we are going to deploy
+    - pip install -e ./demo/car-crashes/src
+
+    # Do the actual deployment to Kubeflow to make sure everything works as expected
+    - crashed pipelines crashed_pipeline deploy-dev --host $KFP_HOST --client-id $KFP_CLIENT_ID --namespace $K8S_NAMESPACE
+
+#######################################
 ####  INFRA
 #######################################
-image-hypermodel-base:
-  stage: release
-  only:
-    - release/*
-  script:
-    - echo "Building..."
-    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base.Dockerfile ./infra/docker
-    - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION
+# image-hypermodel-base-alpine:
+#   stage: infra
+#   when: manual
+#   script:
+#     - echo "Building..."
+#     - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+#     - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION -f ./infra/docker/hypermodel-base-alpine.Dockerfile ./infra/docker
+#     - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:alpine-$VERSION
 
-image-hypermodel-cicd-gitlab:
-  stage: release
-  only:
-    - release/*
+image-hypermodel-base-buster:
+  stage: infra
+  when: manual
   script:
     - echo "Building..."
-    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION -f ./infra/docker/hypermodel-cicd-gitlab.Dockerfile ./infra/docker
-    - docker push $IMAGE_DOCKERHUB_HYPERMODEL_CICD:gitlab-$VERSION
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+    - docker build -t $IMAGE_DOCKERHUB_HYPERMODEL_BASE:buster-$VERSION -f ./infra/docker/hypermodel-base-buster.Dockerfile ./infra/docker
+    - docker push $IMAGE_DOCKERHUB_HYPERMODEL_BASE:buster-$VERSION

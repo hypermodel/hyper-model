@@ -1,4 +1,5 @@
 import gitlab
+import logging
 from typing import Dict, List
 from hypermodel.platform.gcp.config import GooglePlatformConfig
 from hypermodel.platform.gcp.data_lake import DataLake
@@ -19,6 +20,13 @@ class GooglePlatformServices(PlatformServicesBase):
     """
 
     def __init__(self):
+
+        logging.info("GooglePlatformServices.__init__()")
+        pass
+
+    def initialize(self):
+        logging.info("GooglePlatformServices.initialize()")
+
         self._config: GooglePlatformConfig = GooglePlatformConfig()
         self._lake: DataLake = DataLake(self.config)
         self._warehouse: DataWarehouse = DataWarehouse(self.config)
@@ -39,3 +47,4 @@ class GooglePlatformServices(PlatformServicesBase):
     @property
     def git(self) -> GitLabHost:
         return self._git
+

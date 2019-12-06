@@ -12,16 +12,13 @@ API / SDK documentation for Hyper Model is available at https://docs.hypermodel.
 
 ## 1. Install conda
 
-## 2. Create a conda environment
+## 2. Create a conda environment & install the development package
 
 ```sh
-conda create --name hml-dev python=3.7
-conda install -n hml-dev mypy pandas joblib flask waitress click tqdm kfp
+conda create --name hml-dev python=3.8
+conda install -n hml-dev mypy scikit-learn pandas joblib flask waitress click tqdm
+conda install -c conda-forge xgboost
 conda activate hml-dev
-
-
-cd src/hyper-model/
-pip install -e .
 
 ```
 
@@ -30,7 +27,6 @@ pip install -e .
 ```sh
 cd src/hyper-model/
 python -m pip install --upgrade setuptools wheel
-python setup.py sdist bdist_wheel
 pip install -e .
 
 ```
@@ -86,7 +82,7 @@ any other python package.
 from setuptools import setup, find_packages
 
 NAME = "crashed"
-VERSION = "0.0.73"
+VERSION = "0.0.80"
 REQUIRES = [
     "click",
     "kfp",

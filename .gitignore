@@ -24,6 +24,7 @@ packages
 **/build/**
 **/dist/**
 /output/**
+/tmp/**
 *.procs
 *.joblib
 artifacts/**
@@ -32,4 +33,5 @@ artifacts/**
 *.db
 *.dat
 abc.py
-
+**/*.egg-info/**
+*-distributions.json

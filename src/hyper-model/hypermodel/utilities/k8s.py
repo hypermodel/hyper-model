@@ -59,6 +59,9 @@ def secret_to_file(secret_name: str, namespace: str, path: str) -> bool:
 
     return True
 
+def create_secret(secret_name:str, path:str, namespace:str="kubeflow"):
+    sh(f"kubectl create secret generic {secret_name} --namespace {namespace} --from-file={secret_name}.json={path}")
+
 
 def sanitize_k8s_name(name: str):
     """From _make_kubernetes_name

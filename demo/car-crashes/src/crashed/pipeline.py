@@ -1,130 +1,120 @@
 import logging
+import joblib
+import json
 import click
+import os
+import uuid
 from typing import Dict, List
 from xgboost import XGBClassifier
 from hypermodel import hml
 from hypermodel.features import one_hot_encode
-from crashed.shared import BQ_TABLE_TRAINING, BQ_TABLE_TEST, MODEL_NAME
+from hypermodel.features import get_unique_feature_values, describe_features
+from crashed.shared import MODEL_NAME
 from crashed.shared import build_feature_matrix
+from crashed.shared import FEATURES_NUMERIC, FEATURES_CATEGORICAL, TARGET
 
 
 @hml.op()
-@hml.pass_context
-def create_training(ctx):
-    services: GooglePlatformServices = ctx.obj["services"]
-    model_container = get_model_container(ctx)
+def select_into(sql: str, output_dataset: str, output_table: str):
+    pkg = hml.get_package()
 
-    column_string = ",".join(model_container.features_all)
-
-    query = f"""
-        SELECT {column_string}, {model_container.target}
-        FROM crashed.crashes_raw 
-        WHERE accident_date BETWEEN '2013-01-01' AND '2017-01-01' 
-    """
-    services.warehouse.select_into(
-        query, services.config.warehouse_dataset, BQ_TABLE_TRAINING
-    )
-
-    logging.info(f"Wrote training set to {BQ_TABLE_TRAINING}.  Success!")
+    services = pkg.services
+    services.warehouse.select_into(sql, output_dataset, output_table)
+    return output_table
 
 
 @hml.op()
-@hml.pass_context
-def create_test(ctx):
-    services: GooglePlatformServices = ctx.obj["services"]
-    model_container = get_model_container(ctx)
+def export_csv(bucket: str, dataset_name: str, table_name: str):
+    pkg = hml.get_package()
 
-    column_string = ",".join(model_container.features_all)
+    services = pkg.services
+    bucket_path = pkg.artifact_path(table_name + ".csv")
+    bucket_url = services.warehouse.export_csv(bucket, bucket_path, dataset_name, table_name)
 
-    query = f"""
-        SELECT {column_string}, {model_container.target}
-        FROM crashed.crashes_raw 
-        WHERE accident_date > '2018-01-01'
-    """
-    services.warehouse.select_into(
-        query, services.config.warehouse_dataset, BQ_TABLE_TEST
-    )
-
-    logging.info(f"Wrote test set to {BQ_TABLE_TEST}.  Success!")
+    return bucket_path
 
 
 @hml.op()
-@hml.pass_context
-def train_model(ctx):
-    services: GooglePlatformServices = ctx.obj["services"]
-    app: HmlApp = ctx.obj["app"]
-    model_container = get_model_container(ctx)
+def analyze_categorical_features(bucket: str, csv_path: str, artifact_name: str, columns: List[str]):
+    pkg = hml.get_package()
+    services = pkg.services
 
-    training_df = services.warehouse.dataframe_from_table(
-        services.config.warehouse_dataset, BQ_TABLE_TRAINING
-    )
-    # training_df.to_csv("/mnt/c/data/crashed/training.csv")
-    # training_df = pd.read_csv("/mnt/c/data/crashed/training.csv")
-    logging.info("Got Training DataFrame!")
+    training_df = services.lake.download_csv(bucket, csv_path)
+    unique_feature_values = get_unique_feature_values(training_df, columns)
 
-    test_df = services.warehouse.dataframe_from_table(
-        services.config.warehouse_dataset, BQ_TABLE_TEST
-    )
-    # test_df.to_csv("/mnt/c/data/crashed/test.csv")
-    # test_df = pd.read_csv("/mnt/c/data/crashed/test.csv")
-    logging.info("Got Test DataFrame!")
-
-    # Find all our unique values for categorical features and
-    # distribution information for other features
-    model_container.analyze_distributions(training_df)
-
-    # Train the model
-    model = train(model_container, training_df)
-
-    # Let out container know about the trained model
-    model_container.bind_model(model)
-
-    # Run some evaluation against the model
-    evaluate_model(model_container, test_df)
-
-    # Publish this version of the model & data analysis
-    ref = model_container.publish()
-
-    model_container.dump_reference(ref)
-
-    # Create a merge request for this model to be deployed (don't do it here
-    # because we don't want to polute the repository with merge requests relating
-    # to test runs)
-    model_container.create_merge_request(
-        reference=ref
-    )
-    return
+    # Add the artifact we have just produced
+    return pkg.add_artifact_json(artifact_name, unique_feature_values)
 
 
-def get_model_container(ctx):
-    models: Dict[str, ModelContainer] = ctx.obj["models"]
-    model_container = models[MODEL_NAME]
-    return model_container
- 
+@hml.op()
+def analyze_numeric_features(bucket: str, csv_path: str, artifact_name: str, columns: List[str]
+                             ):
+    pkg = hml.get_package()
+    services = pkg.services
 
-def train(model_container, data_frame):
-    logging.info(f"training: {model_container.name}: train")
-    feature_matrix = build_feature_matrix(model_container, data_frame)
-    targets = data_frame[model_container.target]
+    training_df = services.lake.download_csv(bucket, csv_path)
+    unique_feature_values = describe_features(training_df, columns)
+
+    # Add the artifact we have just produced
+    return pkg.add_artifact_json(artifact_name, unique_feature_values)
+
+
+@hml.op()
+def build_matrix(bucket: str, csv_path: str, analysis_path_categorical: str, numeric_features: List[str], target: str, artifact_name: str):
+    pkg = hml.get_package()
+    services = pkg.services
+    json_features = services.lake.download_string(bucket, analysis_path_categorical)
+    unique_feature_values = json.loads(json_features)
+    training_df = services.lake.download_csv(bucket, csv_path)
+
+    # Add in our categorical features via one-hot encoding
+    encoded_df = one_hot_encode(training_df, unique_feature_values, throw_on_missing=True)
+
+    # Add in all the numeric columns
+    for nf in numeric_features:
+        encoded_df[nf] = training_df[nf]
+
+    # Add in the target column to our new encoded data frame
+    encoded_df[target] = training_df[target]
+
+    # Add the encoded dataframe as an artifact
+    return pkg.add_artifact_dataframe(artifact_name, encoded_df)
+
+
+@hml.op()
+def train_model(bucket: str, matrix_path: str, target: str, artifact_name: str):
+    pkg = hml.get_package()
+    config = pkg.services.config
+    services = pkg.services
+    final_df = services.lake.download_csv(bucket, matrix_path)
+    targets = final_df[target]
+    feature_matrix = final_df.values
 
     classifier = XGBClassifier()
     model = classifier.fit(feature_matrix, targets, verbose=True)
 
-    return model
+    filename = uuid.uuid4()
+    tmp_path = os.path.join(config.temp_path, f"{filename}.joblib")
+    joblib.dump(model, tmp_path)
+
+    artifact_path = pkg.add_artifact_file(artifact_name, tmp_path)
+    os.remove(tmp_path)
+
+    return artifact_path
 
 
-def evaluate_model(model_container, data_frame):
-    logging.info(f"training: {model_container.name}: evaluate_model")
+# def evaluate_model(model_container, data_frame):
+#     logging.info(f"training: {model_container.name}: evaluate_model")
 
-    test_feature_matrix = build_feature_matrix(model_container, data_frame)
-    test_targets = data_frame[model_container.target]
+#     test_feature_matrix = build_feature_matrix(model_container, data_frame)
+#     test_targets = data_frame[model_container.target]
 
-    # Evaluate the model against the training data to get an idea of where we are at
-    test_predictions = [v for v in model_container.model.predict(test_feature_matrix)]
-    correct = 0
-    for i in range(0, len(test_predictions)):
-        if test_predictions[i] == test_targets[i]:
-            correct += 1
+#     # Evaluate the model against the training data to get an idea of where we are at
+#     test_predictions = [v for v in model_container.model.predict(test_feature_matrix)]
+#     correct = 0
+#     for i in range(0, len(test_predictions)):
+#         if test_predictions[i] == test_targets[i]:
+#             correct += 1
 
-    pc_correct = int(100 * correct / len(test_predictions))
-    logging.info(f"Got {correct} out of {len(test_predictions)} ({pc_correct}%)")
+#     pc_correct = int(100 * correct / len(test_predictions))
+#     logging.info(f"Got {correct} out of {len(test_predictions)} ({pc_correct}%)")
