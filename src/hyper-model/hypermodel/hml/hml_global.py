@@ -37,7 +37,7 @@ def _pipeline_exit():
 def _deserialize_option(ctx, param, value):
 
     logging.info(f"hml_global._deserialize_option for {param.name}: {value}")
-    if value.startswith("{"):
+    if value.startswith("{") or value.startswith("["):
         return json.loads(value)
     return value
 
