@@ -18,7 +18,7 @@ class GooglePlatformConfig(PlatformConfig):
     k8s_namespace: str
 
     GCS_CHUNK_SIZE: int
-
+  
     def __init__(self):
         PlatformConfig.__init__(self)
         self.gcp_project = self.get_env("GCP_PROJECT")

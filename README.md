@@ -82,7 +82,7 @@ any other python package.
 from setuptools import setup, find_packages
 
 NAME = "crashed"
-VERSION = "0.0.73"
+VERSION = "0.0.80"
 REQUIRES = [
     "click",
     "kfp",
@@ -245,7 +245,7 @@ Again, containers deployed to Kubernetes will require configuration prior to dep
 ```python
     @hml.deploy_inference(app.inference)
     def deploy_inference(deployment: hml.HmlInferenceDeployment):
-        print(f"Preparing deployment: {deployment.deployment_name} ({deployment.k8s_container.image} -> {deployment.k8s_container.args} )")
+        logging.info(f"Preparing deploying: {deployment.deployment_name} ({deployment.k8s_container.image} -> {deployment.k8s_container.args} )")
 
         (
             deployment

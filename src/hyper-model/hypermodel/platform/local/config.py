@@ -1,6 +1,8 @@
 import os
 import typing
 from typing import List, Set, Dict, Tuple, Optional
+#from hypermodel.tests.utilities.configurations import TstConfig
+from hypermodel.tests.utilities.configurations import TstConfig
 from hypermodel.platform.abstract.platform_config import PlatformConfig
 
 
@@ -9,11 +11,12 @@ class LocalConfig(PlatformConfig):
 
     def __init__(self):
         PlatformConfig.__init__(self)
+        testConfig=TstConfig()
 
         self.data_lake_path = self.get_env("HM_LAKE_PATH")
         self.sqlite_db_path = self.get_env("HM_SQLITE_WAREHOUSE_DBPATH")
 
-        self.lake_bucket = self.get_env("LAKE_BUCKET")
+        self.lake_bucket = self.get_env("LAKE_BUCKET",os.path.join(testConfig.get_base_folder(),"sqlite_lake_bucket"))
         self.lake_path = self.get_env("LAKE_PATH")
 
         self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET', "hyper_model")
@@ -22,7 +25,7 @@ class LocalConfig(PlatformConfig):
         self.k8s_namespace = self.get_env('K8S_NAMESPACE')
         self.k8s_cluster = self.get_env('K8S_CLUSTER')
 
-        self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', '.')
+        self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', os.path.join(testConfig.get_base_folder(),"data"))
 
         self.ci_commit = self.get_env("CI_COMMIT_SHA", "no-commit")
 

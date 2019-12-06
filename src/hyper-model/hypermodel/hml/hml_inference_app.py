@@ -11,6 +11,7 @@ from waitress import serve
 from hypermodel.hml.prediction.routes.health import bind_health_routes
 from hypermodel.platform.abstract.services import PlatformServicesBase
 from hypermodel.hml.hml_inference_deployment import HmlInferenceDeployment
+import os
 
 
 class HmlInferenceApp:
@@ -120,10 +121,8 @@ class HmlInferenceApp:
         """
         Get a reference to a model with the given name, retuning None
         if it cannot be found.
-
         Args:
             name (str): The name of the model
-
         Returns:
             The ModelContainer object of the model if it can be found,
             or None if it cannot be found.
@@ -144,7 +143,13 @@ class HmlInferenceApp:
             callback(self.deployment)
 
         # Now actually do the kubernetes deployment...
-        config.load_kube_config()
+        kube_config_dir=os.path.join('.',".kube")
+        kube_config_file=os.path.join(os.path.abspath(kube_config_dir),"config.json")
+        logging.info(f"The full path of the kube file is {os.path.abspath(kube_config_dir)}")
+        if not os.path.exists(kube_config_dir):
+            os.makedirs(kube_config_dir)
+        
+        config.load_kube_config(kube_config_file)
 
         self.apply_deployment(self.deployment.k8s_deployment)
         self.apply_service(self.deployment.k8s_service)

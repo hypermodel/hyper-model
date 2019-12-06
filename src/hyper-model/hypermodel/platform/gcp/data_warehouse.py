@@ -140,7 +140,6 @@ class DataWarehouse(DataWarehouseBase):
         columns = self._translate_columns(bq_tbl.schema)
         tbl = SqlTable(bq_tbl.dataset_id, bq_tbl.table_id, columns)
 
-        # print(tbl.to_sql())
         return tbl
 
     def _get_client(self) -> bigquery.Client:

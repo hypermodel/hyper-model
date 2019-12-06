@@ -1,7 +1,6 @@
 import warnings
 import logging
 import sys
-sys.path.append('C:\\Amit\\hypermodel\\hyper-model\\src\\hyper-model')
 
 root = logging.getLogger()
 root.setLevel(logging.INFO)

@@ -1,0 +1,33 @@
+##################################################################
+####     Configuration file for tests               ##############
+##################################################################
+### In order to specify a folder relative to the base directory
+### just specify an '&'  before the value and the entire path
+### would be considered
+
+
+
+[TESTING_THE_TEST_FILE]
+TEST_ENTRY=1
+
+
+
+
+[FLAT_FILE_LOCATION]
+DUMMY_FILE_LOCATION=&/tests/test_data/dummy_file.txt
+DUMMY_FILE_LOCATION2=&/tests/test_data/dummy_file_2.txt
+CSV_DATA_FILE=&tests/test_data/csv_data_file.csv
+CSV_DATA_FILE2=&tests/test_data/csv_data_file2.csv 
+TEST_DATA_FOLDER=&/tests/test_data
+TEMPERORY_FILES_FOLDER=&/tests/test_data/temp_files
+REFERENCE_JSON_FILE_NAME=&/tests/test_data/test-reference.json
+DISTRIBUTIONS_JSON_FILE_NAME=&/tests/test_data/test-distributions.json
+JOBLIB_FILE_NAME=&/tests/test_data/test.joblib
+
+
+[DATABASE_LOCATION]
+SQLITE_DB_FOR_TESTING=&tests/test_data/testing_database.db
+SQLITE_TABLE_FOR_TESTING1=dummy_table_1
+SQLITE_TABLE_FOR_TESTING2=dummy_table_2
+SQLITE_TABLE_FOR_TESTING3=dummy_table_3
+

@@ -17,7 +17,8 @@ def scale_by_mean_stdev(dataframe: pd.DataFrame, feature: str, mean: float, stde
     Returns:
         The adjusted dataframe passed in
     """
-    dataframe[feature] = dataframe[feature].apply(lambda x: (x-mean) / stdev)
+
+    dataframe[feature] = (dataframe[feature]-mean)/stdev#.apply(lambda x: (x-mean) / stdev)
 
     return dataframe
 

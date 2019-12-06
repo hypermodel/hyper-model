@@ -1,5 +1,3 @@
-# import sys
-# sys.path.append('C:\\Amit\\hypermodel\\hyper-model\\src\\hyper-model\\')
 
 
 import click
@@ -8,7 +6,7 @@ import os
 # from hypermodel.platform.gcp.services import GooglePlatformServices
 from hypermodel.platform.local.services import LocalServices
 
-from titanic.model_config import services , titanic_model_container
+from titanic.tragic_titanic_config import services , titanic_model_container
 from titanic.pipeline.ops.transform import transform
 from titanic.pipeline.ops.training import training
 from titanic.pipeline.ops.testing import testing

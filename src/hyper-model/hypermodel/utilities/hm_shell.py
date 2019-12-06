@@ -14,7 +14,6 @@ def sh(
         env = os.environ
 
     try:
-        #print(f"> {cmd} (in {cwd})")
 
         channel = subprocess.Popen(
             [cmd],
@@ -40,7 +39,6 @@ def sh(
     except Exception as e:
         if not ignore_error:
             error_message = str(e)
-            #print(f"> {cmd} Failed: {error_message}")
             return (False, error_message, error_message)
 
     return (channel.returncode, stdout, stderr)

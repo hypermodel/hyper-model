@@ -39,7 +39,6 @@ FEATURES_CATEGORICAL: List[str] = [
 
 TARGET = "alcohol_related"
 
-
 def build_feature_matrix(model_container, data_frame: pd.DataFrame, throw_on_missing=False):
     """
         Given an input dataframe, encode the categorical features (one-hot)

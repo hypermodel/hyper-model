@@ -1,5 +1,5 @@
 import click
-from hypermodel.utilities.k8s import secret_from_env, secret_to_file, connect
+from hypermodel.utilities.k8s import secret_from_env, secret_to_file, connect as util_connect
 
 
 @click.group()
@@ -27,6 +27,6 @@ def secret_get(ctx, secret_name: str, output_path: str) -> bool:
 
 @k8s.command()
 @click.pass_context
-def connect(ctx) -> bool:
+def connect(ctx) -> None:
     config = ctx.obj['config']
-    return connect(config.k8s_cluster, config.gcp_zone, config.gcp_project)
+    util_connect(config.k8s_cluster, config.gcp_zone, config.gcp_project)

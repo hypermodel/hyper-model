@@ -31,7 +31,6 @@ def secret_from_env(env_var: str, namespace: str) -> bool:
     sh(f"kubectl create secret generic {secret_name} -n {namespace} --from-file={secret_file}")
     os.remove(secret_file)
 
-    #print(f"Created secret {secret_name} in namespace {namespace} from ${env_var}")
     return True
 
 
@@ -58,7 +57,6 @@ def secret_to_file(secret_name: str, namespace: str, path: str) -> bool:
         with open(output_file, "wb") as f:
             f.write(decoded)
 
-    #print(f"Downloaded secret {secret_name} in namespace {namespace} to ${output_file}")
     return True
 
 def create_secret(secret_name:str, path:str, namespace:str="kubeflow"):
@@ -72,7 +70,7 @@ def sanitize_k8s_name(name: str):
     return re.sub('-+', '-', re.sub('[^-0-9a-z]+', '-', name.lower())).lstrip('-').rstrip('-')
 
 
-def connect(cluster_name: str, zone: str, project: str):
+def connect(cluster_name: str, zone: str, project: str)->None:
     """
     Using gcloud, set up the environment to connect to the specified cluster, given
     by ``cluster_name`` in the ``zone`` and ``project``.
