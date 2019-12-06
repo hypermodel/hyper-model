@@ -25,6 +25,7 @@ REQUIRES = [
     "google-cloud",
     "google-cloud-bigquery",
     "hypermodel",
+    "pytest"
 ]
 
 

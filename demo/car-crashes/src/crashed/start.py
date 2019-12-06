@@ -21,7 +21,7 @@ def main():
 
     app = hml.HmlApp(
         name="car-crashes",
-        platform="Local",
+        platform="GCP",
         image_url=image_url,
         package_entrypoint="crashed",
         inference_port=8000,
