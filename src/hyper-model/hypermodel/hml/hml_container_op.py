@@ -185,12 +185,16 @@ class HmlContainerOp(object):
             # Just trust "click" to pass in the correct parameters
             unpacked_kwargs = kwargs
 
-            # It also appears that kubeflow ill quote all paramters, even where
+            # It also appears that kubeflow ill quote all string paramters, even where
             # they have already been quotes and then "click" will pass through
             # double quoted strings so we need to strip them as well.
             for k in unpacked_kwargs:
-                 unpacked_kwargs[k] = unpacked_kwargs[k].strip("\"").encode().decode('unicode_escape')
-
+                val = unpacked_kwargs[k]
+                if isinstance(val, str): 
+                    unpacked_kwargs[k] = val.strip("\"").encode().decode('unicode_escape')
+                else:
+                    # Non-strings are cool man
+                    pass
 
 
         logging.info(f"{self.pipeline.name}.{self.name}: Executing Operation")
