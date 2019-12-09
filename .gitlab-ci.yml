@@ -34,6 +34,7 @@ before_script:
 
   # Demo / Docker Images
   - export DOCKERHUB_DEMOCRASHED="growingdata/demo-crashed"
+  - export DOCKERHUB_SINGER_ETL="growingdata/singer-etl"
 
   # Setup permissions for Docker to do all the things that need doing
   - echo "$GCR_CONTAINER_WRITER_KEY" > ./gcr-container-writer.json
@@ -57,6 +58,14 @@ build-docs:
     # Make the documentation
     - chmod +x update-docs.sh
     - ./update-docs.sh
+
+build-singer-etl:
+  # Generate documentation using sphinx (which is also a pseudo build step)
+  stage: build
+  script:
+    - docker login --username $DOCKERHUB_USERNAME --password $DOCKERHUB_PASSWORD docker.io
+    - docker build -t $DOCKERHUB_SINGER_ETL:$CI_COMMIT_SHA -f ./infra/docker/singer-etl.Dockerfile ./infra/docker
+    - docker push $DOCKERHUB_SINGER_ETL:$CI_COMMIT_SHA
 
 #######################################
 ####  DEPLOY
