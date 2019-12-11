@@ -18,7 +18,7 @@ NAME = "hypermodel"
 VERSION = "0.1.80"
 REQUIRES = [
     "click",
-    "kfp",
+    "kfp==0.1.37",
     "pandas",
     "joblib",
     "google-cloud",
@@ -33,6 +33,8 @@ REQUIRES = [
     "sphinx_rtd_theme",
     "kubernetes>=8.0.0, <=9.0.0",
     "pytest",
+    "pyyaml",
+    "python-dateutil>=2.6.1"
 ]
 
 setup(

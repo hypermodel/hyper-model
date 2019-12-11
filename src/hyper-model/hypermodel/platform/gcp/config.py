@@ -21,17 +21,17 @@ class GooglePlatformConfig(PlatformConfig):
   
     def __init__(self):
         PlatformConfig.__init__(self)
-        self.gcp_project = self.get_env("GCP_PROJECT")
-        self.gcp_zone = self.get_env("GCP_ZONE")
+        self.gcp_project = self.get_env("GCP_PROJECT", "")
+        self.gcp_zone = self.get_env("GCP_ZONE", "")
 
-        self.lake_bucket = self.get_env("LAKE_BUCKET")
-        self.lake_path = self.get_env("LAKE_PATH")
+        self.lake_bucket = self.get_env("LAKE_BUCKET", "")
+        self.lake_path = self.get_env("LAKE_PATH", "")
 
-        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET', "hyper_model")
+        self.warehouse_dataset = self.get_env('WAREHOUSE_DATASET', "")
         self.warehouse_location = self.get_env("WAREHOUSE_LOCATION", "australia-southeast1")
 
-        self.k8s_namespace = self.get_env('K8S_NAMESPACE')
-        self.k8s_cluster = self.get_env('K8S_CLUSTER')
+        self.k8s_namespace = self.get_env('K8S_NAMESPACE', "")
+        self.k8s_cluster = self.get_env('K8S_CLUSTER', "")
 
         self.kfp_artifact_path = self.get_env('KFP_ARTIFACT_PATH', './artifacts')
 
